@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能旅行规划助手</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌍 智能旅行规划助手</h1>
+            <p class="subtitle">告诉我你的目的地、时间和预算，我为你规划完美行程</p>
+        </header>
+
+        <main>
+            <form id="travelForm" class="travel-form">
+                <div class="form-group">
+                    <label for="destination">目的地</label>
+                    <input
+                        type="text"
+                        id="destination"
+                        name="destination"
+                        placeholder="例如：东京、巴黎、成都"
+                        required
+                    >
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startDate">开始日期</label>
+                        <input
+                            type="date"
+                            id="startDate"
+                            name="startDate"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endDate">结束日期</label>
+                        <input
+                            type="date"
+                            id="endDate"
+                            name="endDate"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="budget">预算（人民币）</label>
+                    <input
+                        type="number"
+                        id="budget"
+                        name="budget"
+                        placeholder="例如：5000"
+                        min="0"
+                        step="100"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="preferences">旅行偏好（可选）</label>
+                    <textarea
+                        id="preferences"
+                        name="preferences"
+                        rows="3"
+                        placeholder="例如：喜欢美食、对历史文化感兴趣、想去网红打卡点"
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span class="btn-text">生成行程计划</span>
+                    <span class="btn-loader" style="display: none;">生成中...</span>
+                </button>
+            </form>
+
+            <div id="result" class="result-section" style="display: none;">
+                <h2>为您推荐的行程</h2>
+                <div id="itinerary" class="itinerary-content"></div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by Claude AI</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

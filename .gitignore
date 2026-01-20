@@ -1,0 +1,23 @@
+1# 依赖目录
+node_modules/
+
+# 编译输出
+public/app.js
+public/app.js.map
+
+# 日志文件
+*.log
+npm-debug.log*
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# IDE配置
+.vscode/
+*.swp
+*.swo
+
+# 临时文件
+*.tmp
+temp/
