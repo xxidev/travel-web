@@ -63,7 +63,7 @@ export class GooglePlacesService {
     }
 
     // 获取真实的酒店、景点、餐厅数据
-    async getRealPlacesData(destination: string, budgetLevel: string): Promise<PlacesData> {
+    async getRealPlacesData(destination: string, budgetLevel: string, budgetPerNight?: number): Promise<PlacesData> {
         const placesData: PlacesData = {
             hotels: [],
             attractions: [],
@@ -71,9 +71,33 @@ export class GooglePlacesService {
         };
 
         try {
-            // 根据预算等级确定搜索词
-            const hotelQuery = budgetLevel === 'budget' ? 'budget hotel' :
-                              budgetLevel === 'mid' ? 'hotel' : 'luxury hotel';
+            // 根据预算等级确定搜索词和价格等级范围
+            let hotelQuery: string;
+            let targetPriceLevels: number[];
+
+            if (budgetPerNight) {
+                // 根据每晚预算确定价格等级
+                if (budgetPerNight < 200) {
+                    hotelQuery = 'budget hotel hostel';
+                    targetPriceLevels = [0, 1];
+                } else if (budgetPerNight < 400) {
+                    hotelQuery = 'hotel affordable';
+                    targetPriceLevels = [1, 2];
+                } else if (budgetPerNight < 800) {
+                    hotelQuery = 'hotel';
+                    targetPriceLevels = [2, 3];
+                } else {
+                    hotelQuery = 'luxury hotel';
+                    targetPriceLevels = [3, 4];
+                }
+            } else {
+                // 使用预算等级
+                hotelQuery = budgetLevel === 'budget' ? 'budget hotel hostel' :
+                            budgetLevel === 'mid' ? 'hotel' : 'luxury hotel';
+                targetPriceLevels = budgetLevel === 'budget' ? [0, 1] :
+                                   budgetLevel === 'mid' ? [1, 2] : [2, 3, 4];
+            }
+
             const hotels = await this.searchPlaces(`${hotelQuery} ${destination}`, '', 'lodging');
             console.log(`找到 ${hotels.length} 个酒店`);
 
@@ -87,14 +111,24 @@ export class GooglePlacesService {
             const restaurants = await this.searchPlaces(`${restaurantQuery} ${destination}`, '', 'restaurant');
             console.log(`找到 ${restaurants.length} 个餐厅`);
 
-            // 处理酒店数据
-            for (let i = 0; i < Math.min(2, hotels.length); i++) {
-                const hotel = hotels[i];
+            // 处理酒店数据 - 筛选符合预算的酒店
+            const filteredHotels = hotels.filter(hotel => {
+                const priceLevel = hotel.price_level !== undefined ? hotel.price_level : 2;
+                return targetPriceLevels.includes(priceLevel);
+            });
+
+            console.log(`筛选后符合预算的酒店: ${filteredHotels.length} 个`);
+
+            // 如果筛选后没有酒店，使用所有酒店
+            const hotelsToUse = filteredHotels.length > 0 ? filteredHotels : hotels;
+
+            for (let i = 0; i < Math.min(5, hotelsToUse.length); i++) {
+                const hotel = hotelsToUse[i];
                 placesData.hotels.push({
                     name: hotel.name,
                     address: hotel.formatted_address || hotel.vicinity || '地址未提供',
                     rating: hotel.rating ? hotel.rating.toString() : 'N/A',
-                    priceLevel: hotel.price_level || 0,
+                    priceLevel: hotel.price_level !== undefined ? hotel.price_level : 2,
                     area: this.extractArea(hotel.formatted_address || hotel.vicinity)
                 });
             }

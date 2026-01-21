@@ -6,6 +6,7 @@ interface TravelFormData {
   startDate: string
   endDate: string
   budget: string
+  currency: string
   preferences: string
 }
 
@@ -15,6 +16,7 @@ const App: React.FC = () => {
     startDate: '',
     endDate: '',
     budget: '',
+    currency: 'CNY',
     preferences: ''
   })
 
@@ -141,19 +143,42 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="budget">预算（人民币）</label>
-            <input
-              type="number"
-              id="budget"
-              name="budget"
-              placeholder="例如：5000"
-              min="0"
-              step="100"
-              value={formData.budget}
-              onChange={handleInputChange}
-              required
-            />
+          <div className="form-row">
+            <div className="form-group" style={{ flex: '2' }}>
+              <label htmlFor="budget">预算金额</label>
+              <input
+                type="number"
+                id="budget"
+                name="budget"
+                placeholder="例如：5000"
+                min="0"
+                step="100"
+                value={formData.budget}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="form-group" style={{ flex: '1' }}>
+              <label htmlFor="currency">货币</label>
+              <select
+                id="currency"
+                name="currency"
+                value={formData.currency}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="CNY">人民币 (¥)</option>
+                <option value="USD">美元 ($)</option>
+                <option value="EUR">欧元 (€)</option>
+                <option value="GBP">英镑 (£)</option>
+                <option value="JPY">日元 (¥)</option>
+                <option value="KRW">韩元 (₩)</option>
+                <option value="SGD">新元 (S$)</option>
+                <option value="AUD">澳元 (A$)</option>
+                <option value="CAD">加元 (C$)</option>
+              </select>
+            </div>
           </div>
 
           <div className="form-group">

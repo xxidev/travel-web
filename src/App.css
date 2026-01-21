@@ -67,6 +67,7 @@ label {
 input[type="text"],
 input[type="date"],
 input[type="number"],
+select,
 textarea {
     width: 100%;
     padding: 12px 15px;
@@ -75,9 +76,15 @@ textarea {
     font-size: 1rem;
     transition: all 0.3s ease;
     font-family: inherit;
+    background-color: white;
+}
+
+select {
+    cursor: pointer;
 }
 
 input:focus,
+select:focus,
 textarea:focus {
     outline: none;
     border-color: #667eea;
