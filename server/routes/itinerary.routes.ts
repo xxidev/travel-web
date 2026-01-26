@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { ItineraryController } from '../controllers/itinerary.controller';
+import {ItineraryController} from "../controllers/itinerary.controller";
+
 
 const router = Router();
 
