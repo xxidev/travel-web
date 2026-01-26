@@ -47,7 +47,8 @@ const App: React.FC = () => {
       })
 
       if (!response.ok) {
-        throw new Error('生成行程失败')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || '生成行程失败')
       }
 
       const data = await response.json()
