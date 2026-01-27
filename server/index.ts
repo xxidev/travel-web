@@ -4,29 +4,29 @@ import dotenv from 'dotenv';
 import path from 'path';
 import itineraryRoutes from './routes/itinerary.routes';
 
-// 加载环境变量 - 从项目根目录加载
+// Load environment variables from project root
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 
-// 验证API Key是否加载
+// Verify API Key is loaded
 console.log('Google API Key loaded:', process.env.GOOGLE_PLACES_API_KEY ? 'Yes' : 'No');
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
 
-// 中间件
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API路由
+// API routes
 app.use('/api', itineraryRoutes);
 
-// 健康检查端点
+// Health check endpoint
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok', message: '服务器运行正常' });
+    res.json({ status: 'ok', message: 'Server is running' });
 });
 
-// 启动服务器
+// Start server
 app.listen(PORT, () => {
-    console.log(`服务器运行在端口 ${PORT}`);
-    console.log(`API地址: http://localhost:${PORT}/api`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`API endpoint: http://localhost:${PORT}/api`);
 });

@@ -17,7 +17,6 @@ interface PlacesData {
 export class ItineraryService {
     private googlePlacesService: GooglePlacesService;
 
-    // 汇率映射（相对于人民币）
     private exchangeRates: { [key: string]: number } = {
         'CNY': 1,
         'USD': 7.2,
@@ -30,7 +29,6 @@ export class ItineraryService {
         'CAD': 5.2
     };
 
-    // 货币符号
     private currencySymbols: { [key: string]: string } = {
         'CNY': '¥',
         'USD': '$',
@@ -47,76 +45,61 @@ export class ItineraryService {
         this.googlePlacesService = googlePlacesService;
     }
 
-    // 转换为人民币
     private convertToCNY(amount: number, currency: string): number {
         const rate = this.exchangeRates[currency] || 1;
         return Math.floor(amount * rate);
     }
 
-    // 从人民币转换为指定货币
     private convertFromCNY(amountCNY: number, currency: string): number {
         const rate = this.exchangeRates[currency] || 1;
         return Math.floor(amountCNY / rate);
     }
 
-    // 获取货币符号
     private getCurrencySymbol(currency: string): string {
-        return this.currencySymbols[currency] || '¥';
+        return this.currencySymbols[currency] || '$';
     }
 
-    // 获取价格等级文本
     private getPriceLevelText(priceLevel: number): string {
         const levels: { [key: number]: string } = {
-            0: '免费',
-            1: '经济型 ($)',
-            2: '中档 ($$)',
-            3: '高档 ($$$)',
-            4: '豪华 ($$$$)'
+            0: 'Free',
+            1: 'Budget ($)',
+            2: 'Moderate ($$)',
+            3: 'Expensive ($$$)',
+            4: 'Luxury ($$$$)'
         };
-        return levels[priceLevel] || '未知';
+        return levels[priceLevel] || 'Unknown';
     }
 
     async generateItinerary(request: ItineraryRequest): Promise<string> {
-        const { destination, days, budget, preferences, currency = 'CNY' } = request;
+        const { destination, days, budget, preferences, currency = 'USD' } = request;
 
-        // 转换为人民币进行计算
         const budgetInCNY = this.convertToCNY(budget, currency);
         const dailyBudgetCNY = Math.floor(budgetInCNY / days);
 
-        // 确定预算等级（基于人民币）
         let budgetLevel: string;
         if (dailyBudgetCNY < 300) budgetLevel = 'budget';
         else if (dailyBudgetCNY < 600) budgetLevel = 'mid';
         else budgetLevel = 'luxury';
 
-        // 计算每晚住宿预算（人民币）
         const accommodationBudgetCNY = Math.floor(budgetInCNY * 0.35);
         const budgetPerNightCNY = days > 1 ? Math.floor(accommodationBudgetCNY / (days - 1)) : accommodationBudgetCNY;
 
-        // 获取 Google Places API 数据
         let realData: PlacesData = { hotels: [], attractions: [], restaurants: [] };
         try {
-            console.log(`正在获取 ${destination} 的数据（预算等级: ${budgetLevel}，每晚预算: ¥${budgetPerNightCNY}）...`);
+            console.log(`Fetching data for ${destination} (budget level: ${budgetLevel}, per night: ¥${budgetPerNightCNY})...`);
             realData = await this.googlePlacesService.getRealPlacesData(destination, budgetLevel, budgetPerNightCNY);
-            console.log(`获取到: ${realData.hotels.length} 个酒店, ${realData.attractions.length} 个景点, ${realData.restaurants.length} 个餐厅`);
+            console.log(`Found: ${realData.hotels.length} hotels, ${realData.attractions.length} attractions, ${realData.restaurants.length} restaurants`);
         } catch (error) {
-            console.error('Google API调用失败:', (error as Error).message);
+            console.error('Google API call failed:', (error as Error).message);
         }
 
         const currencySymbol = this.getCurrencySymbol(currency);
 
-        let itinerary = `# ${destination} ${days}天旅行计划\n\n`;
+        let itinerary = `# ${destination} ${days}-Day Travel Plan\n\n`;
 
-        // 预算总览
         itinerary += this.generateBudgetSection(budget, Math.floor(budget / days), budgetInCNY, dailyBudgetCNY, currency, currencySymbol);
-
-        // 住宿推荐
         itinerary += this.generateAccommodationSection(realData, days, budgetInCNY, currency, currencySymbol, destination);
-
-        // 详细行程
         itinerary += this.generateDetailedItinerary(realData, days, destination);
-
-        // 实用贴士
         itinerary += this.generateTipsSection(destination, preferences);
 
         return itinerary;
@@ -130,17 +113,9 @@ export class ItineraryService {
         currency: string,
         currencySymbol: string
     ): string {
-        let section = `## 💰 预算总览\n\n`;
-        section += `**总预算**: ${currencySymbol}${budget}`;
-        if (currency !== 'CNY') {
-            section += ` (约¥${budgetInCNY})`;
-        }
-        section += `\n`;
-        section += `**日均预算**: ${currencySymbol}${dailyBudget}`;
-        if (currency !== 'CNY') {
-            section += ` (约¥${dailyBudgetCNY})`;
-        }
-        section += `\n\n`;
+        let section = `## Budget Overview\n\n`;
+        section += `**Total Budget**: ${currencySymbol}${budget}\n`;
+        section += `**Daily Budget**: ${currencySymbol}${dailyBudget}\n\n`;
 
         const accommodationBudget = this.convertFromCNY(Math.floor(budgetInCNY * 0.35), currency);
         const foodBudget = this.convertFromCNY(Math.floor(budgetInCNY * 0.25), currency);
@@ -148,12 +123,12 @@ export class ItineraryService {
         const activityBudget = this.convertFromCNY(Math.floor(budgetInCNY * 0.15), currency);
         const otherBudget = this.convertFromCNY(Math.floor(budgetInCNY * 0.05), currency);
 
-        section += `**预算分配建议**:\n`;
-        section += `- 住宿: ${currencySymbol}${accommodationBudget} (35%)\n`;
-        section += `- 餐饮: ${currencySymbol}${foodBudget} (25%)\n`;
-        section += `- 交通: ${currencySymbol}${transportBudget} (20%)\n`;
-        section += `- 门票/活动: ${currencySymbol}${activityBudget} (15%)\n`;
-        section += `- 其他/备用: ${currencySymbol}${otherBudget} (5%)\n\n`;
+        section += `**Suggested Budget Allocation**:\n`;
+        section += `- Accommodation: ${currencySymbol}${accommodationBudget} (35%)\n`;
+        section += `- Food & Dining: ${currencySymbol}${foodBudget} (25%)\n`;
+        section += `- Transportation: ${currencySymbol}${transportBudget} (20%)\n`;
+        section += `- Activities & Tickets: ${currencySymbol}${activityBudget} (15%)\n`;
+        section += `- Miscellaneous: ${currencySymbol}${otherBudget} (5%)\n\n`;
         return section;
     }
 
@@ -165,7 +140,7 @@ export class ItineraryService {
         currencySymbol: string,
         destination: string
     ): string {
-        let section = `## 🏨 住宿推荐\n\n`;
+        let section = `## Accommodation Recommendations\n\n`;
         const totalNights = days - 1;
 
         const accommodationBudgetCNY = Math.floor(totalBudgetCNY * 0.35);
@@ -173,36 +148,32 @@ export class ItineraryService {
         const accommodationBudget = this.convertFromCNY(accommodationBudgetCNY, currency);
         const budgetPerNight = this.convertFromCNY(budgetPerNightCNY, currency);
 
-        section += `**💰 住宿预算**: 总预算的35%约为 ${currencySymbol}${accommodationBudget}，平均每晚 ${currencySymbol}${budgetPerNight}`;
-        if (currency !== 'CNY') {
-            section += ` (约¥${budgetPerNightCNY}/晚)`;
-        }
-        section += `\n\n`;
+        section += `**Accommodation Budget**: ~${currencySymbol}${accommodationBudget} total, ~${currencySymbol}${budgetPerNight}/night\n\n`;
 
         if (realData.hotels.length > 0) {
-            section += `**为您推荐以下酒店**：\n\n`;
+            section += `**Recommended Hotels**:\n\n`;
 
             const hotelsToShow = Math.min(3, realData.hotels.length);
             for (let i = 0; i < hotelsToShow; i++) {
                 const hotel = realData.hotels[i];
                 section += `**${i + 1}. ${hotel.name}**\n`;
-                section += `- 📍 地址: ${hotel.address}\n`;
-                section += `- ⭐ 评分: ${hotel.rating}\n`;
-                section += `- 💵 价格等级: ${this.getPriceLevelText(hotel.priceLevel)}\n\n`;
+                section += `- Address: ${hotel.address}\n`;
+                section += `- Rating: ${hotel.rating}\n`;
+                section += `- Price Level: ${this.getPriceLevelText(hotel.priceLevel)}\n\n`;
             }
         } else {
-            section += `**住宿建议**:\n`;
-            section += `- 推荐在${destination}市中心或主要景区附近选择酒店\n`;
-            section += `- 可通过携程、Booking.com、Agoda、Airbnb等平台预订\n`;
-            section += `- 提前1-2周预订可获得更优惠的价格\n\n`;
+            section += `**Booking Tips**:\n`;
+            section += `- Look for hotels in ${destination} city center or near main attractions\n`;
+            section += `- Use Booking.com, Agoda, Airbnb, or Hotels.com to compare prices\n`;
+            section += `- Book 1-2 weeks in advance for better rates\n\n`;
         }
 
         const priceRangeLow = this.convertFromCNY(Math.floor(budgetPerNightCNY * 0.8), currency);
         const priceRangeHigh = this.convertFromCNY(Math.floor(budgetPerNightCNY * 1.2), currency);
 
-        section += `**预订提示**:\n`;
-        section += `- 建议价格范围: ${currencySymbol}${priceRangeLow}-${currencySymbol}${priceRangeHigh}/晚\n`;
-        section += `- 入住${totalNights}晚，预计总花费: ${currencySymbol}${budgetPerNight * totalNights}\n\n`;
+        section += `**Booking Tips**:\n`;
+        section += `- Suggested price range: ${currencySymbol}${priceRangeLow}-${currencySymbol}${priceRangeHigh}/night\n`;
+        section += `- ${totalNights} nights, estimated total: ${currencySymbol}${budgetPerNight * totalNights}\n\n`;
 
         return section;
     }
@@ -212,13 +183,13 @@ export class ItineraryService {
         days: number,
         destination: string
     ): string {
-        let section = `## 📅 详细行程\n\n`;
+        let section = `## Detailed Itinerary\n\n`;
 
         const { attractions, restaurants, hotels } = realData;
         const hasData = attractions.length > 0;
 
         for (let day = 1; day <= days; day++) {
-            section += `### 第${day}天\n\n`;
+            section += `### Day ${day}\n\n`;
 
             if (day === 1) {
                 section += this.generateDayOne(destination, hotels, attractions, restaurants);
@@ -240,45 +211,45 @@ export class ItineraryService {
     ): string {
         let section = '';
 
-        section += `**上午 9:00-12:00**: 抵达${destination}\n`;
+        section += `**Morning 9:00-12:00**: Arrive in ${destination}\n`;
         if (hotels.length > 0) {
-            section += `- 办理酒店入住：${hotels[0].name}\n`;
-            section += `- 地址：${hotels[0].address}\n`;
+            section += `- Check in at: ${hotels[0].name}\n`;
+            section += `- Address: ${hotels[0].address}\n`;
         } else {
-            section += `- 办理酒店入住\n`;
+            section += `- Check in at your hotel\n`;
         }
-        section += `- 稍作休息，整理行李\n\n`;
+        section += `- Rest and freshen up\n\n`;
 
-        section += `**中午 12:00-13:30**: 午餐\n`;
+        section += `**Lunch 12:00-13:30**\n`;
         if (restaurants.length > 0) {
-            section += `- 推荐：${restaurants[0].name}\n`;
-            section += `- 地址：${restaurants[0].address}\n`;
-            section += `- 评分：${restaurants[0].rating}⭐\n`;
+            section += `- Recommended: ${restaurants[0].name}\n`;
+            section += `- Address: ${restaurants[0].address}\n`;
+            section += `- Rating: ${restaurants[0].rating}\n`;
         } else {
-            section += `- 在酒店附近寻找当地特色餐厅\n`;
-            section += `- 推荐使用大众点评、美团等APP查找\n`;
+            section += `- Find a local restaurant near your hotel\n`;
+            section += `- Try local specialties\n`;
         }
         section += `\n`;
 
-        section += `**下午 14:00-17:30**: 景点游览\n`;
+        section += `**Afternoon 14:00-17:30**: Sightseeing\n`;
         if (attractions.length > 0) {
             section += `- ${attractions[0].name}\n`;
-            section += `- 地址：${attractions[0].address}\n`;
-            section += `- 评分：${attractions[0].rating}⭐\n`;
+            section += `- Address: ${attractions[0].address}\n`;
+            section += `- Rating: ${attractions[0].rating}\n`;
         } else {
-            section += `- 游览${destination}的标志性景点\n`;
-            section += `- 建议提前在网上搜索热门景点并预约门票\n`;
+            section += `- Visit ${destination}'s iconic landmarks\n`;
+            section += `- Book tickets online in advance\n`;
         }
         section += `\n`;
 
-        section += `**晚上 18:30-20:30**: 晚餐 & 夜游\n`;
+        section += `**Evening 18:30-20:30**: Dinner & Night Walk\n`;
         if (restaurants.length > 1) {
-            section += `- 推荐：${restaurants[1].name}\n`;
-            section += `- 地址：${restaurants[1].address}\n`;
+            section += `- Recommended: ${restaurants[1].name}\n`;
+            section += `- Address: ${restaurants[1].address}\n`;
         } else {
-            section += `- 品尝${destination}当地特色美食\n`;
+            section += `- Enjoy local cuisine\n`;
         }
-        section += `- 饭后可以欣赏${destination}夜景\n\n`;
+        section += `- Explore the nightlife of ${destination}\n\n`;
 
         return section;
     }
@@ -286,16 +257,17 @@ export class ItineraryService {
     private generateLastDay(destination: string): string {
         let section = '';
 
-        section += `**上午 8:00-10:00**: 早餐 & 购物\n`;
-        section += `- 在酒店附近享用早餐\n`;
-        section += `- 购买当地特产和纪念品\n\n`;
+        section += `**Morning 8:00-10:00**: Breakfast & Shopping\n`;
+        section += `- Have breakfast near the hotel\n`;
+        section += `- Buy souvenirs and local products\n\n`;
 
-        section += `**上午 10:00-11:30**: 退房\n`;
-        section += `- 整理行李，办理退房手续\n\n`;
+        section += `**Morning 10:00-11:30**: Check Out\n`;
+        section += `- Pack your luggage\n`;
+        section += `- Complete check-out\n\n`;
 
-        section += `**下午**: 返程\n`;
-        section += `- 前往机场/车站\n`;
-        section += `- 结束愉快的${destination}之旅\n\n`;
+        section += `**Afternoon**: Departure\n`;
+        section += `- Head to airport/station\n`;
+        section += `- End of your wonderful trip to ${destination}!\n\n`;
 
         return section;
     }
@@ -312,59 +284,59 @@ export class ItineraryService {
         const attrIndex = (day - 1) * 2;
         const restIndex = day;
 
-        section += `**上午 9:00-12:00**: 景点游览\n`;
+        section += `**Morning 9:00-12:00**: Sightseeing\n`;
         if (hasData && attractions[attrIndex % attractions.length]) {
             const attr = attractions[attrIndex % attractions.length];
             section += `- ${attr.name}\n`;
-            section += `- 地址：${attr.address}\n`;
-            section += `- 评分：${attr.rating}⭐\n`;
+            section += `- Address: ${attr.address}\n`;
+            section += `- Rating: ${attr.rating}\n`;
         } else {
-            section += `- 探索${destination}的热门景点\n`;
-            section += `- 建议提前规划路线\n`;
+            section += `- Explore popular attractions in ${destination}\n`;
+            section += `- Plan your route in advance\n`;
         }
         section += `\n`;
 
-        section += `**中午 12:30-14:00**: 午餐\n`;
+        section += `**Lunch 12:30-14:00**\n`;
         if (hasData && restaurants[restIndex % restaurants.length]) {
             const rest = restaurants[restIndex % restaurants.length];
-            section += `- 推荐：${rest.name}\n`;
-            section += `- 地址：${rest.address}\n`;
+            section += `- Recommended: ${rest.name}\n`;
+            section += `- Address: ${rest.address}\n`;
         } else {
-            section += `- 在景点附近寻找当地美食\n`;
+            section += `- Find local food near the attractions\n`;
         }
         section += `\n`;
 
-        section += `**下午 14:30-18:00**: 继续探索\n`;
+        section += `**Afternoon 14:30-18:00**: Continue Exploring\n`;
         if (hasData && attractions[(attrIndex + 1) % attractions.length]) {
             const attr = attractions[(attrIndex + 1) % attractions.length];
             section += `- ${attr.name}\n`;
-            section += `- 地址：${attr.address}\n`;
-            section += `- 评分：${attr.rating}⭐\n`;
+            section += `- Address: ${attr.address}\n`;
+            section += `- Rating: ${attr.rating}\n`;
         } else {
-            section += `- 参观博物馆、历史街区或特色街道\n`;
-            section += `- 体验${destination}当地文化\n`;
+            section += `- Visit museums, historic districts, or unique neighborhoods\n`;
+            section += `- Experience local culture\n`;
         }
         section += `\n`;
 
-        section += `**晚上 19:00-21:00**: 晚餐 & 休闲\n`;
-        section += `- 品尝当地美食\n`;
-        section += `- 逛夜市或欣赏夜景\n\n`;
+        section += `**Evening 19:00-21:00**: Dinner & Leisure\n`;
+        section += `- Enjoy local cuisine\n`;
+        section += `- Explore night markets or enjoy the night view\n\n`;
 
         return section;
     }
 
     private generateTipsSection(destination: string, preferences?: string): string {
-        let section = `## 💡 实用贴士\n\n`;
-        section += `- **必备物品**: 身份证件、充电宝、常用药品、舒适鞋子\n`;
-        section += `- **预订建议**: 提前预订热门景点门票，避开高峰时段\n`;
-        section += `- **交通出行**: 可使用当地公共交通或打车软件\n`;
-        section += `- **省钱技巧**: 购买交通通票、选择套票组合、关注景点优惠日\n`;
+        let section = `## Travel Tips\n\n`;
+        section += `- **Essentials**: ID/Passport, power bank, medicine, comfortable shoes\n`;
+        section += `- **Booking**: Book popular attractions in advance to avoid long queues\n`;
+        section += `- **Transportation**: Use public transit or ride-sharing apps\n`;
+        section += `- **Save Money**: Get transit passes, combo tickets, and check for discount days\n`;
 
         if (preferences) {
-            section += `- **特别关注**: ${preferences}\n`;
+            section += `- **Your Interests**: ${preferences}\n`;
         }
 
-        section += `\n**祝您在${destination}旅途愉快！** 🎉\n`;
+        section += `\n**Have a wonderful trip to ${destination}!**\n`;
         return section;
     }
 }

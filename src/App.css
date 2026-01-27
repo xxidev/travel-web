@@ -69,49 +69,11 @@ body::after {
     66% { transform: translate(6%, -4%) scale(1.05); }
 }
 
-/* 装饰元素 - 漂浮的圆点 */
 .container {
     max-width: 900px;
     margin: 0 auto;
     position: relative;
     z-index: 1;
-}
-
-.container::before,
-.container::after {
-    content: '';
-    position: fixed;
-    border-radius: 50%;
-    animation: floatBubble 8s ease-in-out infinite;
-}
-
-.container::before {
-    top: 15%;
-    right: 10%;
-    width: 12px;
-    height: 12px;
-    background: linear-gradient(135deg, var(--coral), var(--orange));
-    box-shadow:
-        0 0 20px rgba(244, 114, 182, 0.5),
-        -30vw 20vh 0 8px var(--accent),
-        -30vw 20vh 15px rgba(20, 184, 166, 0.5),
-        15vw 60vh 0 6px var(--yellow),
-        15vw 60vh 12px rgba(251, 191, 36, 0.5);
-}
-
-.container::after {
-    bottom: 25%;
-    left: 8%;
-    width: 10px;
-    height: 10px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-    animation-delay: -4s;
-}
-
-@keyframes floatBubble {
-    0%, 100% { transform: translateY(0) scale(1); opacity: 0.8; }
-    50% { transform: translateY(-20px) scale(1.1); opacity: 1; }
 }
 
 header {

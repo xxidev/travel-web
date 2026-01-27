@@ -16,7 +16,7 @@ export class ItineraryController {
             const { destination, startDate, endDate, budget, currency, preferences } = req.body;
 
             if (!destination || !startDate || !endDate || !budget) {
-                res.status(400).json({ error: '请提供完整的旅行信息' });
+                res.status(400).json({ error: 'Please provide complete travel information' });
                 return;
             }
 
@@ -26,7 +26,7 @@ export class ItineraryController {
             const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
             if (days < 1) {
-                res.status(400).json({ error: '结束日期必须晚于开始日期' });
+                res.status(400).json({ error: 'End date must be after start date' });
                 return;
             }
 
@@ -41,9 +41,9 @@ export class ItineraryController {
 
             res.json({ itinerary });
         } catch (error) {
-            console.error('生成行程时出错:', error);
+            console.error('Error generating itinerary:', error);
             res.status(500).json({
-                error: '抱歉，生成行程时出现错误：' + (error as Error).message
+                error: 'Sorry, an error occurred: ' + (error as Error).message
             });
         }
     }
