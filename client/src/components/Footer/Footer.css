@@ -1,0 +1,19 @@
+footer {
+    text-align: center;
+    color: var(--text-light);
+    margin-top: 40px;
+    padding: 24px;
+    font-size: 0.9rem;
+    animation: fadeIn 1s ease-out 0.5s both;
+}
+
+footer p {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.3s ease;
+}
+
+footer p:hover {
+    color: var(--primary);
+}

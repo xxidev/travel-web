@@ -1,0 +1,102 @@
+.result-section {
+    margin-top: 48px;
+    padding-top: 48px;
+    border-top: 2px dashed rgba(59, 130, 246, 0.2);
+    animation: resultReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.result-section h2 {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--coral) 50%, var(--orange) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 24px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    animation: gradientFlow 4s ease infinite;
+}
+
+.itinerary-content {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%);
+    padding: 32px;
+    border-radius: 18px;
+    line-height: 1.9;
+    color: var(--text-dark);
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    position: relative;
+}
+
+.itinerary-content h2 {
+    color: var(--coral);
+    margin-top: 28px;
+    margin-bottom: 16px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    -webkit-text-fill-color: var(--coral);
+}
+
+.itinerary-content h3 {
+    color: var(--primary);
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.itinerary-content h2:first-child,
+.itinerary-content h3:first-child {
+    margin-top: 0;
+}
+
+.itinerary-content p {
+    margin-bottom: 16px;
+    color: var(--text-medium);
+}
+
+.itinerary-content ul {
+    margin-left: 8px;
+    margin-bottom: 16px;
+    list-style: none;
+}
+
+.itinerary-content li {
+    margin-bottom: 12px;
+    position: relative;
+    padding-left: 28px;
+    transition: all 0.3s ease;
+    color: var(--text-medium);
+}
+
+.itinerary-content li:hover {
+    transform: translateX(6px);
+    color: var(--text-dark);
+}
+
+.itinerary-content li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 10px;
+    height: 10px;
+    background: linear-gradient(135deg, var(--yellow), var(--orange));
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
+    transition: transform 0.3s ease;
+}
+
+.itinerary-content li:hover::before {
+    transform: scale(1.2);
+}
+
+.itinerary-content strong {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .itinerary-content {
+        padding: 24px 20px;
+    }
+}
