@@ -20,7 +20,7 @@ export class ItineraryController {
                 return;
             }
 
-            // 计算天数
+            // Calculate number of days
             const start = new Date(startDate);
             const end = new Date(endDate);
             const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
@@ -30,12 +30,12 @@ export class ItineraryController {
                 return;
             }
 
-            // 生成行程
+            // Generate itinerary
             const itinerary = await this.itineraryService.generateItinerary({
                 destination,
                 days,
                 budget: parseInt(budget),
-                currency: currency || 'CNY',
+                currency: currency || 'USD',
                 preferences
             });
 

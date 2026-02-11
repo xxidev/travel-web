@@ -6,6 +6,12 @@ interface PlaceResult {
     vicinity?: string;
     rating?: number;
     price_level?: number;
+    geometry?: {
+        location: {
+            lat: number;
+            lng: number;
+        };
+    };
 }
 
 interface PlacesData {
@@ -15,12 +21,16 @@ interface PlacesData {
         rating: string;
         priceLevel: number;
         area: string;
+        lat?: number;
+        lng?: number;
     }>;
     attractions: Array<{
         name: string;
         address: string;
         rating: string;
         area: string;
+        lat?: number;
+        lng?: number;
     }>;
     restaurants: Array<{
         name: string;
@@ -28,6 +38,8 @@ interface PlacesData {
         rating: string;
         priceLevel: number;
         area: string;
+        lat?: number;
+        lng?: number;
     }>;
 }
 
@@ -129,30 +141,36 @@ export class GooglePlacesService {
                     address: hotel.formatted_address || hotel.vicinity || 'Address not available',
                     rating: hotel.rating ? hotel.rating.toString() : 'N/A',
                     priceLevel: hotel.price_level !== undefined ? hotel.price_level : 2,
-                    area: this.extractArea(hotel.formatted_address || hotel.vicinity)
+                    area: this.extractArea(hotel.formatted_address || hotel.vicinity),
+                    lat: hotel.geometry?.location?.lat,
+                    lng: hotel.geometry?.location?.lng
                 });
             }
 
-            // Process attraction data
-            for (let i = 0; i < Math.min(7, attractions.length); i++) {
+            // Process attraction data - get more for better clustering
+            for (let i = 0; i < Math.min(15, attractions.length); i++) {
                 const attr = attractions[i];
                 placesData.attractions.push({
                     name: attr.name,
                     address: attr.formatted_address || attr.vicinity || 'Address not available',
                     rating: attr.rating ? attr.rating.toString() : 'N/A',
-                    area: this.extractArea(attr.formatted_address || attr.vicinity)
+                    area: this.extractArea(attr.formatted_address || attr.vicinity),
+                    lat: attr.geometry?.location?.lat,
+                    lng: attr.geometry?.location?.lng
                 });
             }
 
-            // Process restaurant data
-            for (let i = 0; i < Math.min(3, restaurants.length); i++) {
+            // Process restaurant data - get more for better matching
+            for (let i = 0; i < Math.min(10, restaurants.length); i++) {
                 const rest = restaurants[i];
                 placesData.restaurants.push({
                     name: rest.name,
                     address: rest.formatted_address || rest.vicinity || 'Address not available',
                     rating: rest.rating ? rest.rating.toString() : 'N/A',
                     priceLevel: rest.price_level || 0,
-                    area: this.extractArea(rest.formatted_address || rest.vicinity)
+                    area: this.extractArea(rest.formatted_address || rest.vicinity),
+                    lat: rest.geometry?.location?.lat,
+                    lng: rest.geometry?.location?.lng
                 });
             }
 

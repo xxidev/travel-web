@@ -15,12 +15,12 @@ const TravelForm: React.FC<TravelFormProps> = ({ formData, loading, onInputChang
   return (
     <form onSubmit={onSubmit} className="travel-form">
       <div className="form-group">
-        <label htmlFor="destination">目的地</label>
+        <label htmlFor="destination">Destination</label>
         <input
           type="text"
           id="destination"
           name="destination"
-          placeholder="例如：东京、巴黎、成都"
+          placeholder="e.g. Tokyo, Paris, New York"
           value={formData.destination}
           onChange={onInputChange}
           required
@@ -29,7 +29,7 @@ const TravelForm: React.FC<TravelFormProps> = ({ formData, loading, onInputChang
 
       <div className="form-row">
         <div className="form-group">
-          <label htmlFor="startDate">开始日期</label>
+          <label htmlFor="startDate">Start Date</label>
           <input
             type="date"
             id="startDate"
@@ -42,7 +42,7 @@ const TravelForm: React.FC<TravelFormProps> = ({ formData, loading, onInputChang
         </div>
 
         <div className="form-group">
-          <label htmlFor="endDate">结束日期</label>
+          <label htmlFor="endDate">End Date</label>
           <input
             type="date"
             id="endDate"
@@ -57,12 +57,12 @@ const TravelForm: React.FC<TravelFormProps> = ({ formData, loading, onInputChang
 
       <div className="form-row">
         <div className="form-group" style={{ flex: '2' }}>
-          <label htmlFor="budget">预算金额</label>
+          <label htmlFor="budget">Budget</label>
           <input
             type="number"
             id="budget"
             name="budget"
-            placeholder="例如：5000"
+            placeholder="e.g. 5000"
             min="0"
             step="100"
             value={formData.budget}
@@ -72,7 +72,7 @@ const TravelForm: React.FC<TravelFormProps> = ({ formData, loading, onInputChang
         </div>
 
         <div className="form-group" style={{ flex: '1' }}>
-          <label htmlFor="currency">货币</label>
+          <label htmlFor="currency">Currency</label>
           <select
             id="currency"
             name="currency"
@@ -80,26 +80,26 @@ const TravelForm: React.FC<TravelFormProps> = ({ formData, loading, onInputChang
             onChange={onInputChange}
             required
           >
-            <option value="CNY">人民币 (¥)</option>
-            <option value="USD">美元 ($)</option>
-            <option value="EUR">欧元 (€)</option>
-            <option value="GBP">英镑 (£)</option>
-            <option value="JPY">日元 (¥)</option>
-            <option value="KRW">韩元 (₩)</option>
-            <option value="SGD">新元 (S$)</option>
-            <option value="AUD">澳元 (A$)</option>
-            <option value="CAD">加元 (C$)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="CNY">CNY (¥)</option>
+            <option value="JPY">JPY (¥)</option>
+            <option value="KRW">KRW (₩)</option>
+            <option value="SGD">SGD (S$)</option>
+            <option value="AUD">AUD (A$)</option>
+            <option value="CAD">CAD (C$)</option>
           </select>
         </div>
       </div>
 
       <div className="form-group">
-        <label htmlFor="preferences">旅行偏好（可选）</label>
+        <label htmlFor="preferences">Travel Preferences (optional)</label>
         <textarea
           id="preferences"
           name="preferences"
           rows={3}
-          placeholder="例如：喜欢美食、对历史文化感兴趣、想去网红打卡点"
+          placeholder="e.g. love food, interested in history & culture, want to visit popular spots"
           value={formData.preferences}
           onChange={onInputChange}
         />
@@ -107,10 +107,10 @@ const TravelForm: React.FC<TravelFormProps> = ({ formData, loading, onInputChang
 
       <button type="submit" className="submit-btn" disabled={loading}>
         <span className="btn-text" style={{ display: loading ? 'none' : 'inline-block' }}>
-          生成行程计划
+          Generate Itinerary
         </span>
         <span className="btn-loader" style={{ display: loading ? 'inline-block' : 'none' }}>
-          生成中...
+          Generating...
         </span>
       </button>
     </form>

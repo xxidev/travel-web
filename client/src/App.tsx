@@ -12,7 +12,7 @@ const App: React.FC = () => {
     startDate: '',
     endDate: '',
     budget: '',
-    currency: 'CNY',
+    currency: 'USD',
     preferences: ''
   })
 
@@ -45,7 +45,7 @@ const App: React.FC = () => {
         })
       }, 100)
     } catch (error) {
-      alert('抱歉，生成行程时出现错误：' + (error as Error).message)
+      alert('Sorry, an error occurred while generating the itinerary: ' + (error as Error).message)
       console.error('Error:', error)
     } finally {
       setLoading(false)

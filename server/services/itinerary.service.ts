@@ -8,10 +8,27 @@ interface ItineraryRequest {
     preferences?: string;
 }
 
+interface PlaceWithLocation {
+    name: string;
+    address: string;
+    rating: string;
+    area: string;
+    lat?: number;
+    lng?: number;
+    priceLevel?: number;
+}
+
 interface PlacesData {
-    hotels: any[];
-    attractions: any[];
-    restaurants: any[];
+    hotels: PlaceWithLocation[];
+    attractions: PlaceWithLocation[];
+    restaurants: PlaceWithLocation[];
+}
+
+interface DayPlan {
+    attractions: PlaceWithLocation[];
+    restaurants: PlaceWithLocation[];
+    centerLat: number;
+    centerLng: number;
 }
 
 export class ItineraryService {
@@ -57,6 +74,150 @@ export class ItineraryService {
 
     private getCurrencySymbol(currency: string): string {
         return this.currencySymbols[currency] || '$';
+    }
+
+    // Calculate distance between two points using Haversine formula (in km)
+    private calculateDistance(lat1?: number, lng1?: number, lat2?: number, lng2?: number): number {
+        if (!lat1 || !lng1 || !lat2 || !lng2) return Infinity;
+
+        const R = 6371; // Earth's radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    // Cluster attractions by geographic proximity for each day
+    private clusterAttractionsByDay(attractions: PlaceWithLocation[], days: number): DayPlan[] {
+        const validAttractions = attractions.filter(a => a.lat && a.lng);
+
+        if (validAttractions.length === 0) {
+            // No coordinates available, fall back to simple distribution
+            return this.simpleDayDistribution(attractions, days);
+        }
+
+        const dayPlans: DayPlan[] = [];
+        const used = new Set<number>();
+        const attractionsPerDay = Math.max(2, Math.ceil(validAttractions.length / Math.max(1, days - 1)));
+
+        for (let day = 0; day < days; day++) {
+            if (day === 0 || day === days - 1) {
+                // First and last day have fewer attractions (arrival/departure)
+                dayPlans.push({ attractions: [], restaurants: [], centerLat: 0, centerLng: 0 });
+                continue;
+            }
+
+            // Find an unused attraction as the starting point (seed)
+            let seedIndex = -1;
+            for (let i = 0; i < validAttractions.length; i++) {
+                if (!used.has(i)) {
+                    seedIndex = i;
+                    break;
+                }
+            }
+
+            if (seedIndex === -1) break;
+
+            const dayAttractions: PlaceWithLocation[] = [validAttractions[seedIndex]];
+            used.add(seedIndex);
+
+            // Find nearby attractions for this day
+            while (dayAttractions.length < attractionsPerDay) {
+                let nearestIndex = -1;
+                let nearestDistance = Infinity;
+
+                // Calculate center of current day's attractions
+                const centerLat = dayAttractions.reduce((sum, a) => sum + (a.lat || 0), 0) / dayAttractions.length;
+                const centerLng = dayAttractions.reduce((sum, a) => sum + (a.lng || 0), 0) / dayAttractions.length;
+
+                // Find the nearest unused attraction
+                for (let i = 0; i < validAttractions.length; i++) {
+                    if (used.has(i)) continue;
+                    const dist = this.calculateDistance(centerLat, centerLng, validAttractions[i].lat, validAttractions[i].lng);
+                    if (dist < nearestDistance) {
+                        nearestDistance = dist;
+                        nearestIndex = i;
+                    }
+                }
+
+                if (nearestIndex === -1 || nearestDistance > 10) break; // Stop if no nearby attractions (>10km)
+
+                dayAttractions.push(validAttractions[nearestIndex]);
+                used.add(nearestIndex);
+            }
+
+            // Calculate final center for restaurant matching
+            const finalCenterLat = dayAttractions.reduce((sum, a) => sum + (a.lat || 0), 0) / dayAttractions.length;
+            const finalCenterLng = dayAttractions.reduce((sum, a) => sum + (a.lng || 0), 0) / dayAttractions.length;
+
+            dayPlans.push({
+                attractions: dayAttractions,
+                restaurants: [],
+                centerLat: finalCenterLat,
+                centerLng: finalCenterLng
+            });
+        }
+
+        return dayPlans;
+    }
+
+    // Simple day distribution when no coordinates available
+    private simpleDayDistribution(attractions: PlaceWithLocation[], days: number): DayPlan[] {
+        const dayPlans: DayPlan[] = [];
+        const attractionsPerDay = Math.max(2, Math.ceil(attractions.length / Math.max(1, days - 1)));
+        let index = 0;
+
+        for (let day = 0; day < days; day++) {
+            if (day === 0 || day === days - 1) {
+                dayPlans.push({ attractions: [], restaurants: [], centerLat: 0, centerLng: 0 });
+                continue;
+            }
+
+            const dayAttractions = attractions.slice(index, index + attractionsPerDay);
+            index += attractionsPerDay;
+
+            dayPlans.push({
+                attractions: dayAttractions,
+                restaurants: [],
+                centerLat: 0,
+                centerLng: 0
+            });
+        }
+
+        return dayPlans;
+    }
+
+    // Find restaurants near the day's attractions
+    private assignRestaurantsToDays(dayPlans: DayPlan[], restaurants: PlaceWithLocation[]): void {
+        const usedRestaurants = new Set<number>();
+
+        for (const dayPlan of dayPlans) {
+            if (dayPlan.attractions.length === 0) continue;
+
+            // Find 2 restaurants near this day's center
+            const nearbyRestaurants: { index: number; distance: number }[] = [];
+
+            for (let i = 0; i < restaurants.length; i++) {
+                if (usedRestaurants.has(i)) continue;
+                const dist = this.calculateDistance(
+                    dayPlan.centerLat, dayPlan.centerLng,
+                    restaurants[i].lat, restaurants[i].lng
+                );
+                nearbyRestaurants.push({ index: i, distance: dist });
+            }
+
+            // Sort by distance and pick the closest ones
+            nearbyRestaurants.sort((a, b) => a.distance - b.distance);
+
+            for (let i = 0; i < Math.min(2, nearbyRestaurants.length); i++) {
+                const restIndex = nearbyRestaurants[i].index;
+                dayPlan.restaurants.push(restaurants[restIndex]);
+                usedRestaurants.add(restIndex);
+            }
+        }
     }
 
     private getPriceLevelText(priceLevel: number): string {
@@ -159,7 +320,7 @@ export class ItineraryService {
                 section += `**${i + 1}. ${hotel.name}**\n`;
                 section += `- Address: ${hotel.address}\n`;
                 section += `- Rating: ${hotel.rating}\n`;
-                section += `- Price Level: ${this.getPriceLevelText(hotel.priceLevel)}\n\n`;
+                section += `- Price Level: ${this.getPriceLevelText(hotel.priceLevel ?? 2)}\n\n`;
             }
         } else {
             section += `**Booking Tips**:\n`;
@@ -184,19 +345,34 @@ export class ItineraryService {
         destination: string
     ): string {
         let section = `## Detailed Itinerary\n\n`;
+        section += `> Route optimized by geographic proximity - attractions and restaurants are clustered by area to minimize travel time.\n\n`;
 
         const { attractions, restaurants, hotels } = realData;
-        const hasData = attractions.length > 0;
+
+        // Cluster attractions by day based on geographic proximity
+        const dayPlans = this.clusterAttractionsByDay(attractions, days);
+
+        // Assign nearby restaurants to each day
+        this.assignRestaurantsToDays(dayPlans, restaurants);
 
         for (let day = 1; day <= days; day++) {
             section += `### Day ${day}\n\n`;
 
             if (day === 1) {
-                section += this.generateDayOne(destination, hotels, attractions, restaurants);
+                const dayPlan = dayPlans[0] || { attractions: [], restaurants: [] };
+                // First day: use first cluster's restaurant if available, or first restaurant
+                const firstDayRestaurants = dayPlan.restaurants.length > 0 ? dayPlan.restaurants :
+                    (dayPlans[1]?.restaurants.length > 0 ? dayPlans[1].restaurants : restaurants);
+                section += this.generateDayOneOptimized(destination, hotels, attractions, firstDayRestaurants);
             } else if (day === days) {
                 section += this.generateLastDay(destination);
             } else {
-                section += this.generateMiddleDay(day, destination, attractions, restaurants, hasData);
+                const dayPlan = dayPlans[day - 1];
+                if (dayPlan && dayPlan.attractions.length > 0) {
+                    section += this.generateMiddleDayOptimized(day, destination, dayPlan);
+                } else {
+                    section += this.generateMiddleDay(day, destination, attractions, restaurants, attractions.length > 0);
+                }
             }
         }
 
@@ -205,9 +381,9 @@ export class ItineraryService {
 
     private generateDayOne(
         destination: string,
-        hotels: any[],
-        attractions: any[],
-        restaurants: any[]
+        hotels: PlaceWithLocation[],
+        attractions: PlaceWithLocation[],
+        restaurants: PlaceWithLocation[]
     ): string {
         let section = '';
 
@@ -254,6 +430,57 @@ export class ItineraryService {
         return section;
     }
 
+    private generateDayOneOptimized(
+        destination: string,
+        hotels: PlaceWithLocation[],
+        attractions: PlaceWithLocation[],
+        nearbyRestaurants: PlaceWithLocation[]
+    ): string {
+        let section = '';
+
+        section += `**Morning 9:00-12:00**: Arrive in ${destination}\n`;
+        if (hotels.length > 0) {
+            section += `- Check in at: ${hotels[0].name}\n`;
+            section += `- Address: ${hotels[0].address}\n`;
+        } else {
+            section += `- Check in at your hotel\n`;
+        }
+        section += `- Rest and freshen up\n\n`;
+
+        section += `**Lunch 12:00-13:30**\n`;
+        if (nearbyRestaurants.length > 0) {
+            section += `- Recommended: ${nearbyRestaurants[0].name}\n`;
+            section += `- Address: ${nearbyRestaurants[0].address}\n`;
+            section += `- Rating: ${nearbyRestaurants[0].rating}\n`;
+        } else {
+            section += `- Find a local restaurant near your hotel\n`;
+            section += `- Try local specialties\n`;
+        }
+        section += `\n`;
+
+        section += `**Afternoon 14:00-17:30**: Sightseeing\n`;
+        if (attractions.length > 0) {
+            section += `- ${attractions[0].name}\n`;
+            section += `- Address: ${attractions[0].address}\n`;
+            section += `- Rating: ${attractions[0].rating}\n`;
+        } else {
+            section += `- Visit ${destination}'s iconic landmarks\n`;
+            section += `- Book tickets online in advance\n`;
+        }
+        section += `\n`;
+
+        section += `**Evening 18:30-20:30**: Dinner & Night Walk\n`;
+        if (nearbyRestaurants.length > 1) {
+            section += `- Recommended: ${nearbyRestaurants[1].name}\n`;
+            section += `- Address: ${nearbyRestaurants[1].address}\n`;
+        } else {
+            section += `- Enjoy local cuisine\n`;
+        }
+        section += `- Explore the nightlife of ${destination}\n\n`;
+
+        return section;
+    }
+
     private generateLastDay(destination: string): string {
         let section = '';
 
@@ -272,11 +499,69 @@ export class ItineraryService {
         return section;
     }
 
+    private generateMiddleDayOptimized(
+        day: number,
+        destination: string,
+        dayPlan: DayPlan
+    ): string {
+        let section = '';
+        const { attractions, restaurants } = dayPlan;
+
+        // Show area info
+        if (attractions.length > 0 && attractions[0].area) {
+            section += `**Area**: ${attractions[0].area} (all locations within walking distance)\n\n`;
+        }
+
+        section += `**Morning 9:00-12:00**: Sightseeing\n`;
+        if (attractions.length > 0) {
+            section += `- ${attractions[0].name}\n`;
+            section += `- Address: ${attractions[0].address}\n`;
+            section += `- Rating: ${attractions[0].rating}\n`;
+        } else {
+            section += `- Explore popular attractions in ${destination}\n`;
+        }
+        section += `\n`;
+
+        section += `**Lunch 12:30-14:00**\n`;
+        if (restaurants.length > 0) {
+            section += `- Recommended: ${restaurants[0].name} (nearby)\n`;
+            section += `- Address: ${restaurants[0].address}\n`;
+            section += `- Rating: ${restaurants[0].rating}\n`;
+        } else {
+            section += `- Find local food near the attractions\n`;
+        }
+        section += `\n`;
+
+        section += `**Afternoon 14:30-18:00**: Continue Exploring\n`;
+        if (attractions.length > 1) {
+            for (let i = 1; i < attractions.length; i++) {
+                section += `- ${attractions[i].name}\n`;
+                section += `  - Address: ${attractions[i].address}\n`;
+                section += `  - Rating: ${attractions[i].rating}\n`;
+            }
+        } else {
+            section += `- Visit museums, historic districts, or unique neighborhoods\n`;
+            section += `- Experience local culture\n`;
+        }
+        section += `\n`;
+
+        section += `**Evening 19:00-21:00**: Dinner & Leisure\n`;
+        if (restaurants.length > 1) {
+            section += `- Recommended: ${restaurants[1].name} (nearby)\n`;
+            section += `- Address: ${restaurants[1].address}\n`;
+        } else {
+            section += `- Enjoy local cuisine\n`;
+        }
+        section += `- Explore night markets or enjoy the night view\n\n`;
+
+        return section;
+    }
+
     private generateMiddleDay(
         day: number,
         destination: string,
-        attractions: any[],
-        restaurants: any[],
+        attractions: PlaceWithLocation[],
+        restaurants: PlaceWithLocation[],
         hasData: boolean
     ): string {
         let section = '';

@@ -11,7 +11,7 @@ export async function generateItinerary(formData: TravelFormData): Promise<strin
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error || '生成行程失败')
+    throw new Error(errorData.error || 'Failed to generate itinerary')
   }
 
   const data = await response.json()

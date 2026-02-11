@@ -4,8 +4,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import itineraryRoutes from './routes/itinerary.routes';
 
-// Load environment variables from project root
-dotenv.config({ path: path.join(process.cwd(), '.env') });
+// Load environment variables from server directory
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Verify API Key is loaded
 console.log('Google API Key loaded:', process.env.GOOGLE_PLACES_API_KEY ? 'Yes' : 'No');

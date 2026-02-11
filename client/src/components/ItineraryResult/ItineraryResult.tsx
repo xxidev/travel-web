@@ -9,7 +9,7 @@ interface ItineraryResultProps {
 const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary }) => {
   return (
     <div id="result" className="result-section">
-      <h2>为您推荐的行程</h2>
+      <h2>Your Recommended Itinerary</h2>
       <div
         className="itinerary-content"
         dangerouslySetInnerHTML={{ __html: formatItinerary(itinerary) }}
