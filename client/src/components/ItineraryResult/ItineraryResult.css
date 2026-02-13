@@ -1,47 +1,63 @@
-.result-section {
-    margin-top: 48px;
-    padding-top: 48px;
-    border-top: 2px dashed rgba(59, 130, 246, 0.2);
-    animation: resultReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+/* Result card */
+.result-card {
+    margin-top: 32px;
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    padding: 48px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--color-border);
+    animation: scaleIn 0.6s var(--transition-normal) both;
 }
 
-.result-section h2 {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--coral) 50%, var(--orange) 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 24px;
-    font-size: 1.8rem;
+/* Result header */
+.result-header {
+    margin-bottom: 36px;
+}
+
+.result-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 14px;
+    background: linear-gradient(135deg, rgba(6, 214, 160, 0.1), rgba(67, 97, 238, 0.08));
+    color: var(--color-teal);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    border-radius: 100px;
+    margin-bottom: 16px;
+}
+
+.result-title {
+    font-size: 1.6rem;
     font-weight: 700;
-    animation: gradientFlow 4s ease infinite;
+    letter-spacing: -0.03em;
+    color: var(--color-text-primary);
+    line-height: 1.3;
 }
 
+/* Itinerary content */
 .itinerary-content {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%);
-    padding: 32px;
-    border-radius: 18px;
-    line-height: 1.9;
-    color: var(--text-dark);
-    border: 1px solid rgba(59, 130, 246, 0.1);
-    position: relative;
+    line-height: 1.85;
+    color: var(--color-text-primary);
 }
 
 .itinerary-content h2 {
-    color: var(--coral);
-    margin-top: 28px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+    margin-top: 40px;
     margin-bottom: 16px;
-    font-size: 1.5rem;
-    font-weight: 600;
-    -webkit-text-fill-color: var(--coral);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .itinerary-content h3 {
-    color: var(--primary);
-    margin-top: 24px;
-    margin-bottom: 12px;
-    font-size: 1.25rem;
+    font-size: 1.08rem;
     font-weight: 600;
+    color: var(--color-text-primary);
+    margin-top: 28px;
+    margin-bottom: 12px;
 }
 
 .itinerary-content h2:first-child,
@@ -50,27 +66,33 @@
 }
 
 .itinerary-content p {
-    margin-bottom: 16px;
-    color: var(--text-medium);
+    margin-bottom: 12px;
+    color: var(--color-text-secondary);
+    font-size: 0.93rem;
+}
+
+.itinerary-content strong {
+    color: var(--color-text-primary);
+    font-weight: 600;
 }
 
 .itinerary-content ul {
-    margin-left: 8px;
-    margin-bottom: 16px;
     list-style: none;
+    margin: 0 0 16px 0;
+    padding: 0;
 }
 
 .itinerary-content li {
-    margin-bottom: 12px;
     position: relative;
-    padding-left: 28px;
-    transition: all 0.3s ease;
-    color: var(--text-medium);
+    padding-left: 20px;
+    margin-bottom: 10px;
+    color: var(--color-text-secondary);
+    font-size: 0.93rem;
+    transition: color var(--transition-fast);
 }
 
 .itinerary-content li:hover {
-    transform: translateX(6px);
-    color: var(--text-dark);
+    color: var(--color-text-primary);
 }
 
 .itinerary-content li::before {
@@ -78,25 +100,35 @@
     position: absolute;
     left: 0;
     top: 10px;
-    width: 10px;
-    height: 10px;
-    background: linear-gradient(135deg, var(--yellow), var(--orange));
+    width: 6px;
+    height: 6px;
+    background: var(--color-accent);
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
-    transition: transform 0.3s ease;
+    opacity: 0.5;
+    transition: opacity var(--transition-fast);
 }
 
 .itinerary-content li:hover::before {
-    transform: scale(1.2);
+    opacity: 1;
 }
 
-.itinerary-content strong {
-    color: var(--primary);
-    font-weight: 600;
+.itinerary-content blockquote {
+    margin: 0 0 24px;
+    padding: 14px 20px;
+    background: var(--color-accent-light);
+    border-left: 3px solid var(--color-accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
 }
 
 @media (max-width: 768px) {
-    .itinerary-content {
-        padding: 24px 20px;
+    .result-card {
+        padding: 32px 24px;
+        border-radius: var(--radius-lg);
+    }
+
+    .result-title {
+        font-size: 1.35rem;
     }
 }

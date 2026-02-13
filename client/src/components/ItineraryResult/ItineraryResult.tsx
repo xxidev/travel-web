@@ -9,7 +9,10 @@ interface ItineraryResultProps {
 const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary }) => {
   return (
     <div id="result" className="result-section">
-      <h2>Your Recommended Itinerary</h2>
+      <div className="result-header">
+        <span className="result-badge">Your Itinerary</span>
+        <h2 className="result-title">Here's your personalized travel plan</h2>
+      </div>
       <div
         className="itinerary-content"
         dangerouslySetInnerHTML={{ __html: formatItinerary(itinerary) }}

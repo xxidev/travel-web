@@ -1,12 +1,16 @@
 import React, { useState } from 'react'
 import { TravelFormData } from './types'
 import { generateItinerary } from './api/itinerary'
+import Navbar, { Page } from './components/Navbar/Navbar'
+import Home from './components/Home/Home'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
 import TravelForm from './components/TravelForm/TravelForm'
 import ItineraryResult from './components/ItineraryResult/ItineraryResult'
 
 const App: React.FC = () => {
+  const [currentPage, setCurrentPage] = useState<Page>('home')
+
   const [formData, setFormData] = useState<TravelFormData>({
     destination: '',
     startDate: '',
@@ -52,23 +56,65 @@ const App: React.FC = () => {
     }
   }
 
+  const navigateToPlanner = (destination?: string) => {
+    if (destination) {
+      setFormData(prev => ({ ...prev, destination }))
+    }
+    setCurrentPage('planner')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleNavigate = (page: Page) => {
+    if (page === 'cities') {
+      setCurrentPage('home')
+      setTimeout(() => {
+        document.getElementById('cities')?.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    } else {
+      setCurrentPage(page)
+    }
+  }
+
   return (
-    <div className="container">
-      <Header />
+    <>
+      <div className="ambient-bg">
+        <div className="ambient-orb ambient-orb--1" />
+        <div className="ambient-orb ambient-orb--2" />
+        <div className="ambient-orb ambient-orb--3" />
+      </div>
 
-      <main>
-        <TravelForm
-          formData={formData}
-          loading={loading}
-          onInputChange={handleInputChange}
-          onSubmit={handleSubmit}
-        />
+      <div className="page-wrapper">
+        <Navbar currentPage={currentPage} onNavigate={handleNavigate} />
 
-        {showResult && <ItineraryResult itinerary={itinerary} />}
-      </main>
+        {currentPage === 'home' ? (
+          <>
+            <Home onNavigateToPlanner={navigateToPlanner} />
+            <Footer />
+          </>
+        ) : (
+          <div className="container container--narrow" style={{ paddingTop: 100 }}>
+            <Header />
 
-      <Footer />
-    </div>
+            <main className="main-card">
+              <TravelForm
+                formData={formData}
+                loading={loading}
+                onInputChange={handleInputChange}
+                onSubmit={handleSubmit}
+              />
+            </main>
+
+            {showResult && (
+              <section className="result-card">
+                <ItineraryResult itinerary={itinerary} />
+              </section>
+            )}
+
+            <Footer />
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 

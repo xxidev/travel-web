@@ -1,22 +1,56 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
-* {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
 :root {
-    --primary: #3b82f6;
-    --primary-light: #60a5fa;
-    --accent: #14b8a6;
-    --accent-light: #2dd4bf;
-    --coral: #f472b6;
-    --orange: #fb923c;
-    --yellow: #fbbf24;
-    --text-dark: #1e293b;
-    --text-medium: #475569;
-    --text-light: #64748b;
+    --color-bg: #f8f9fa;
+    --color-surface: #ffffff;
+    --color-border: rgba(0, 0, 0, 0.06);
+    --color-border-hover: rgba(0, 0, 0, 0.12);
+
+    --color-text-primary: #1a1a2e;
+    --color-text-secondary: #6c6c80;
+    --color-text-tertiary: #9a9ab0;
+
+    --color-accent: #4361ee;
+    --color-accent-hover: #3a56d4;
+    --color-accent-light: rgba(67, 97, 238, 0.08);
+    --color-accent-gradient: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+
+    --color-teal: #06d6a0;
+    --color-coral: #ef476f;
+    --color-amber: #ffd166;
+
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.1);
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04), 0 12px 40px rgba(0, 0, 0, 0.06);
+    --shadow-card-hover: 0 8px 20px rgba(0, 0, 0, 0.08), 0 20px 60px rgba(0, 0, 0, 0.12);
+
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
 }
 
 #root {
@@ -25,66 +59,106 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 25%, #ddd6fe 50%, #bfdbfe 75%, #a7f3d0 100%);
-    background-attachment: fixed;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--color-bg);
     min-height: 100vh;
-    padding: 40px 20px;
     line-height: 1.6;
+    color: var(--color-text-primary);
     overflow-x: hidden;
+}
+
+/* ===== Ambient background ===== */
+.ambient-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.ambient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.25;
+}
+
+.ambient-orb--1 {
+    top: -15%;
+    right: -10%;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(67, 97, 238, 0.3) 0%, transparent 70%);
+    animation: orbFloat1 22s ease-in-out infinite;
+}
+
+.ambient-orb--2 {
+    bottom: -20%;
+    left: -15%;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(114, 9, 183, 0.15) 0%, transparent 70%);
+    animation: orbFloat2 28s ease-in-out infinite;
+}
+
+.ambient-orb--3 {
+    top: 50%;
+    left: 40%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(6, 214, 160, 0.12) 0%, transparent 70%);
+    animation: orbFloat3 20s ease-in-out infinite;
+}
+
+@keyframes orbFloat1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-50px, 40px) scale(1.06); }
+}
+
+@keyframes orbFloat2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(40px, -50px) scale(1.08); }
+}
+
+@keyframes orbFloat3 {
+    0%, 100% { transform: translate(-50%, 0) scale(1); }
+    50% { transform: translate(-50%, -40px) scale(1.04); }
+}
+
+/* ===== Layout ===== */
+.page-wrapper {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 32px;
     position: relative;
 }
 
-body::before,
-body::after {
-    content: '';
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(60px);
-    z-index: 0;
-    opacity: 0.6;
+.container--narrow {
+    max-width: 720px;
 }
 
-body::before {
-    top: 10%;
-    left: 5%;
-    width: 40%;
-    height: 40%;
-    background: radial-gradient(circle, rgba(251, 191, 36, 0.5) 0%, transparent 70%);
-    animation: float1 12s ease-in-out infinite;
-}
-
-body::after {
-    bottom: 10%;
-    right: 5%;
-    width: 45%;
-    height: 45%;
-    background: radial-gradient(circle, rgba(20, 184, 166, 0.4) 0%, transparent 70%);
-    animation: float2 15s ease-in-out infinite;
-}
-
-/* Animations */
-@keyframes float1 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(8%, 5%) scale(1.1); }
-    66% { transform: translate(-5%, 8%) scale(0.95); }
-}
-
-@keyframes float2 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(-6%, -8%) scale(1.08); }
-    66% { transform: translate(6%, -4%) scale(1.05); }
-}
-
+/* ===== Animations ===== */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 
-@keyframes fadeInDown {
+@keyframes slideUp {
     from {
         opacity: 0;
-        transform: translateY(-30px);
+        transform: translateY(24px);
     }
     to {
         opacity: 1;
@@ -92,10 +166,10 @@ body::after {
     }
 }
 
-@keyframes fadeInUp {
+@keyframes slideDown {
     from {
         opacity: 0;
-        transform: translateY(40px);
+        transform: translateY(-12px);
     }
     to {
         opacity: 1;
@@ -103,104 +177,47 @@ body::after {
     }
 }
 
-@keyframes gradientFlow {
-    0% { background-position: 0% center; }
-    50% { background-position: 100% center; }
-    100% { background-position: 0% center; }
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
 
-@keyframes rainbowSlide {
-    0% { background-position: 0% center; }
-    100% { background-position: 200% center; }
-}
-
-@keyframes resultReveal {
-    from {
-        opacity: 0;
-        transform: translateY(40px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.container {
-    max-width: 900px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-}
-
-main {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 28px;
-    padding: 48px;
-    box-shadow:
-        0 4px 6px rgba(0, 0, 0, 0.02),
-        0 12px 40px rgba(0, 0, 0, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    animation: fadeInUp 0.8s ease-out 0.2s both;
-    position: relative;
-    overflow: hidden;
-}
-
-main::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg,
-        var(--primary),
-        var(--accent),
-        var(--yellow),
-        var(--orange),
-        var(--coral)
-    );
-    background-size: 200% auto;
-    animation: rainbowSlide 3s linear infinite;
-}
-
-/* Scrollbar */
+/* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.02);
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(var(--primary-light), var(--accent));
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(var(--primary), var(--accent-light));
+    background: rgba(0, 0, 0, 0.2);
 }
 
 ::selection {
-    background: var(--primary-light);
-    color: white;
+    background: rgba(67, 97, 238, 0.15);
+    color: var(--color-text-primary);
 }
 
-/* Responsive */
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
-    body {
-        padding: 20px 16px;
-    }
-
-    main {
-        padding: 28px 24px;
-        border-radius: 22px;
+    .container {
+        padding: 0 20px;
     }
 }
