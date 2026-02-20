@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import './Navbar.css'
 
 export type Page = 'home' | 'cities' | 'planner'
@@ -9,23 +9,15 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
-  const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   const handleNav = (page: Page) => {
     onNavigate(page)
     setMenuOpen(false)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
-    <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
+    <nav className="navbar navbar--scrolled">
       <div className="navbar-inner container">
         <button className="navbar-brand" onClick={() => handleNav('home')}>
           <span className="navbar-logo">

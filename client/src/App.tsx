@@ -61,7 +61,7 @@ const App: React.FC = () => {
       setFormData(prev => ({ ...prev, destination }))
     }
     setCurrentPage('planner')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => window.scrollTo(0, 0), 0)
   }
 
   const handleNavigate = (page: Page) => {
@@ -87,10 +87,7 @@ const App: React.FC = () => {
         <Navbar currentPage={currentPage} onNavigate={handleNavigate} />
 
         {currentPage === 'home' ? (
-          <>
-            <Home onNavigateToPlanner={navigateToPlanner} />
-            <Footer />
-          </>
+          <Home onNavigateToPlanner={navigateToPlanner} />
         ) : (
           <div className="container container--narrow" style={{ paddingTop: 100 }}>
             <Header />
