@@ -1,0 +1,187 @@
+/* Main card */
+.main-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    padding: 48px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--color-border);
+    animation: slideUp 0.7s var(--transition-normal) 0.3s both;
+}
+
+/* Form */
+.travel-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-section + .form-section {
+    margin-top: 28px;
+}
+
+.form-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.form-grid--2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.form-grid--budget {
+    grid-template-columns: 2fr 1fr;
+}
+
+/* Field */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-label-hint {
+    font-weight: 400;
+    text-transform: none;
+    color: var(--color-text-tertiary);
+    font-size: 0.78rem;
+}
+
+/* Input */
+.form-input {
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--color-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--color-text-primary);
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast);
+    outline: none;
+}
+
+.form-input::placeholder {
+    color: var(--color-text-tertiary);
+}
+
+.form-input:hover {
+    border-color: var(--color-border-hover);
+}
+
+.form-input:focus {
+    border-color: var(--color-accent);
+    background: var(--color-surface);
+    box-shadow: 0 0 0 4px var(--color-accent-light);
+}
+
+/* Select */
+.form-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239a9ab0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.form-select option {
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+}
+
+/* Textarea */
+.form-textarea {
+    resize: vertical;
+    min-height: 88px;
+    line-height: 1.6;
+}
+
+/* Primary button */
+.btn-primary {
+    width: 100%;
+    padding: 16px 32px;
+    margin-top: 36px;
+    background: var(--color-text-primary);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+    letter-spacing: -0.01em;
+    animation: slideUp 0.6s var(--transition-normal) 0.5s both;
+    box-shadow: 0 4px 16px rgba(26, 26, 46, 0.15);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(26, 26, 46, 0.2);
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:disabled {
+    background: var(--color-text-tertiary);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Loading state */
+.btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .main-card {
+        padding: 32px 24px;
+        border-radius: var(--radius-lg);
+    }
+
+    .form-grid--2,
+    .form-grid--budget {
+        grid-template-columns: 1fr;
+    }
+
+    .form-input {
+        padding: 14px 16px;
+    }
+
+    .btn-primary {
+        padding: 16px 24px;
+    }
+}

@@ -6,6 +6,12 @@ interface PlaceResult {
     vicinity?: string;
     rating?: number;
     price_level?: number;
+    geometry?: {
+        location: {
+            lat: number;
+            lng: number;
+        };
+    };
 }
 
 interface PlacesData {
@@ -15,12 +21,16 @@ interface PlacesData {
         rating: string;
         priceLevel: number;
         area: string;
+        lat?: number;
+        lng?: number;
     }>;
     attractions: Array<{
         name: string;
         address: string;
         rating: string;
         area: string;
+        lat?: number;
+        lng?: number;
     }>;
     restaurants: Array<{
         name: string;
@@ -28,6 +38,8 @@ interface PlacesData {
         rating: string;
         priceLevel: number;
         area: string;
+        lat?: number;
+        lng?: number;
     }>;
 }
 
@@ -38,7 +50,7 @@ export class GooglePlacesService {
         this.apiKey = apiKey;
     }
 
-    // 搜索地点
+    // Search for places
     async searchPlaces(query: string, location: string, type: string = 'tourist_attraction'): Promise<PlaceResult[]> {
         try {
             const searchQuery = location ? `${query} in ${location}` : query;
@@ -62,8 +74,8 @@ export class GooglePlacesService {
         }
     }
 
-    // 获取真实的酒店、景点、餐厅数据
-    async getRealPlacesData(destination: string, budgetLevel: string): Promise<PlacesData> {
+    // Get real hotel, attraction, and restaurant data
+    async getRealPlacesData(destination: string, budgetLevel: string, budgetPerNight?: number): Promise<PlacesData> {
         const placesData: PlacesData = {
             hotels: [],
             attractions: [],
@@ -71,54 +83,94 @@ export class GooglePlacesService {
         };
 
         try {
-            // 根据预算等级确定搜索词
-            const hotelQuery = budgetLevel === 'budget' ? 'budget hotel' :
-                              budgetLevel === 'mid' ? 'hotel' : 'luxury hotel';
+            // Determine search terms and price level range based on budget
+            let hotelQuery: string;
+            let targetPriceLevels: number[];
+
+            if (budgetPerNight) {
+                // Determine price level based on nightly budget
+                if (budgetPerNight < 200) {
+                    hotelQuery = 'budget hotel hostel';
+                    targetPriceLevels = [0, 1];
+                } else if (budgetPerNight < 400) {
+                    hotelQuery = 'hotel affordable';
+                    targetPriceLevels = [1, 2];
+                } else if (budgetPerNight < 800) {
+                    hotelQuery = 'hotel';
+                    targetPriceLevels = [2, 3];
+                } else {
+                    hotelQuery = 'luxury hotel';
+                    targetPriceLevels = [3, 4];
+                }
+            } else {
+                // Use budget level
+                hotelQuery = budgetLevel === 'budget' ? 'budget hotel hostel' :
+                            budgetLevel === 'mid' ? 'hotel' : 'luxury hotel';
+                targetPriceLevels = budgetLevel === 'budget' ? [0, 1] :
+                                   budgetLevel === 'mid' ? [1, 2] : [2, 3, 4];
+            }
+
             const hotels = await this.searchPlaces(`${hotelQuery} ${destination}`, '', 'lodging');
-            console.log(`找到 ${hotels.length} 个酒店`);
+            console.log(`Found ${hotels.length} hotels`);
 
-            // 搜索热门景点
+            // Search for popular attractions
             const attractions = await this.searchPlaces(`top attractions ${destination}`, '', 'tourist_attraction');
-            console.log(`找到 ${attractions.length} 个景点`);
+            console.log(`Found ${attractions.length} attractions`);
 
-            // 搜索餐厅
+            // Search for restaurants
             const restaurantQuery = budgetLevel === 'budget' ? 'cheap restaurant' :
                                    budgetLevel === 'mid' ? 'restaurant' : 'fine dining';
             const restaurants = await this.searchPlaces(`${restaurantQuery} ${destination}`, '', 'restaurant');
-            console.log(`找到 ${restaurants.length} 个餐厅`);
+            console.log(`Found ${restaurants.length} restaurants`);
 
-            // 处理酒店数据
-            for (let i = 0; i < Math.min(2, hotels.length); i++) {
-                const hotel = hotels[i];
+            // Filter hotels by budget
+            const filteredHotels = hotels.filter(hotel => {
+                const priceLevel = hotel.price_level !== undefined ? hotel.price_level : 2;
+                return targetPriceLevels.includes(priceLevel);
+            });
+
+            console.log(`Filtered hotels within budget: ${filteredHotels.length}`);
+
+            // Use all hotels if no filtered results
+            const hotelsToUse = filteredHotels.length > 0 ? filteredHotels : hotels;
+
+            for (let i = 0; i < Math.min(5, hotelsToUse.length); i++) {
+                const hotel = hotelsToUse[i];
                 placesData.hotels.push({
                     name: hotel.name,
-                    address: hotel.formatted_address || hotel.vicinity || '地址未提供',
+                    address: hotel.formatted_address || hotel.vicinity || 'Address not available',
                     rating: hotel.rating ? hotel.rating.toString() : 'N/A',
-                    priceLevel: hotel.price_level || 0,
-                    area: this.extractArea(hotel.formatted_address || hotel.vicinity)
+                    priceLevel: hotel.price_level !== undefined ? hotel.price_level : 2,
+                    area: this.extractArea(hotel.formatted_address || hotel.vicinity),
+                    lat: hotel.geometry?.location?.lat,
+                    lng: hotel.geometry?.location?.lng
                 });
             }
 
-            // 处理景点数据
-            for (let i = 0; i < Math.min(7, attractions.length); i++) {
+            // Process attraction data - get more for better clustering
+            for (let i = 0; i < Math.min(15, attractions.length); i++) {
                 const attr = attractions[i];
                 placesData.attractions.push({
                     name: attr.name,
-                    address: attr.formatted_address || attr.vicinity || '地址未提供',
+                    address: attr.formatted_address || attr.vicinity || 'Address not available',
                     rating: attr.rating ? attr.rating.toString() : 'N/A',
-                    area: this.extractArea(attr.formatted_address || attr.vicinity)
+                    area: this.extractArea(attr.formatted_address || attr.vicinity),
+                    lat: attr.geometry?.location?.lat,
+                    lng: attr.geometry?.location?.lng
                 });
             }
 
-            // 处理餐厅数据
-            for (let i = 0; i < Math.min(3, restaurants.length); i++) {
+            // Process restaurant data - get more for better matching
+            for (let i = 0; i < Math.min(10, restaurants.length); i++) {
                 const rest = restaurants[i];
                 placesData.restaurants.push({
                     name: rest.name,
-                    address: rest.formatted_address || rest.vicinity || '地址未提供',
+                    address: rest.formatted_address || rest.vicinity || 'Address not available',
                     rating: rest.rating ? rest.rating.toString() : 'N/A',
                     priceLevel: rest.price_level || 0,
-                    area: this.extractArea(rest.formatted_address || rest.vicinity)
+                    area: this.extractArea(rest.formatted_address || rest.vicinity),
+                    lat: rest.geometry?.location?.lat,
+                    lng: rest.geometry?.location?.lng
                 });
             }
 
@@ -129,18 +181,14 @@ export class GooglePlacesService {
         return placesData;
     }
 
-    // 从完整地址提取区域名称
+    // Extract area name from full address
     private extractArea(address?: string): string {
-        if (!address) return '未知区域';
+        if (!address) return 'Unknown area';
 
-        // 提取中文地址中的区/街道
-        const match = address.match(/([^,，]+?[区县市街道路])/);
-        if (match) return match[1];
-
-        // 提取英文地址的区域
+        // Extract district/street from address
         const parts = address.split(',');
         if (parts.length >= 2) return parts[1].trim();
 
-        return address.split(',')[0] || '未知区域';
+        return parts[0] || 'Unknown area';
     }
 }
