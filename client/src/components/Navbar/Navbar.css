@@ -39,6 +39,15 @@
     cursor: pointer;
     font-family: inherit;
     padding: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.navbar-brand:hover {
+    opacity: 0.75;
+}
+
+.navbar-brand:active {
+    opacity: 0.5;
 }
 
 .navbar-logo {
@@ -85,6 +94,11 @@
     background: rgba(0, 0, 0, 0.04);
 }
 
+.navbar-link:active {
+    color: var(--color-text-primary);
+    background: rgba(0, 0, 0, 0.09);
+}
+
 .navbar-link--active {
     color: var(--color-text-primary);
     background: rgba(0, 0, 0, 0.05);
@@ -102,6 +116,10 @@
     background: #000 !important;
 }
 
+.navbar-link--cta:active {
+    background: #333 !important;
+}
+
 .navbar-link--cta.navbar-link--active {
     background: var(--color-accent);
     color: white !important;
@@ -117,6 +135,11 @@
     cursor: pointer;
     padding: 4px;
     z-index: 101;
+    transition: opacity var(--transition-fast);
+}
+
+.navbar-toggle:active {
+    opacity: 0.5;
 }
 
 .navbar-toggle span {
