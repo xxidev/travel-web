@@ -225,16 +225,41 @@ function generateHTML(data: ParsedItinerary): string {
 
 // ── Public export ──────────────────────────────────────────────────────────
 
-export function downloadItinerary(data: ParsedItinerary): void {
+export async function downloadItinerary(data: ParsedItinerary): Promise<void> {
+  const { default: html2canvas } = await import('html2canvas')
+  const { jsPDF } = await import('jspdf')
+
   const html = generateHTML(data)
-  const filename = `${(data.title || 'itinerary').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.html`
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
-  const url  = URL.createObjectURL(blob)
-  const a    = document.createElement('a')
-  a.href     = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  const filename = `${(data.title || 'itinerary').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.pdf`
+
+  // Render HTML in a hidden off-screen container
+  const container = document.createElement('div')
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:820px;z-index:-1'
+  container.innerHTML = html
+  document.body.appendChild(container)
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#f8f9fa',
+    })
+
+    const imgW = 210           // A4 width in mm
+    const pageH = 297          // A4 height in mm
+    const imgH = (canvas.height * imgW) / canvas.width
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+
+    let y = 0
+    while (y < imgH) {
+      if (y > 0) pdf.addPage()
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, -y, imgW, imgH)
+      y += pageH
+    }
+
+    pdf.save(filename)
+  } finally {
+    document.body.removeChild(container)
+  }
 }

@@ -1,4 +1,4 @@
-import { GooglePlacesService } from './googlePlaces.service';
+import { GooglePlacesService } from './places.service';
 
 interface ItineraryRequest {
     destination: string;

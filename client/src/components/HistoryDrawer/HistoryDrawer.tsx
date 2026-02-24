@@ -1,6 +1,17 @@
 import React from 'react'
+import Drawer from '@mui/material/Drawer'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import Button from '@mui/material/Button'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import Chip from '@mui/material/Chip'
+import Divider from '@mui/material/Divider'
+import CloseIcon from '@mui/icons-material/Close'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import HistoryIcon from '@mui/icons-material/History'
 import { HistoryEntry } from '../../hooks/useHistory'
-import './HistoryDrawer.css'
 
 interface HistoryDrawerProps {
   open: boolean
@@ -27,7 +38,7 @@ function formatDateRange(start: string, end: string): string {
   if (!start || !end) return ''
   try {
     const s = new Date(start + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    const e = new Date(end   + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    const e = new Date(end + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     return `${s} – ${e}`
   } catch {
     return `${start} – ${end}`
@@ -43,87 +54,139 @@ const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
   }
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className={`hd-backdrop ${open ? 'hd-backdrop--open' : ''}`}
-        onClick={onClose}
-      />
-
-      {/* Drawer */}
-      <aside className={`hd-drawer ${open ? 'hd-drawer--open' : ''}`} aria-label="Search history">
-
-        {/* Header */}
-        <div className="hd-header">
-          <div className="hd-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
-            </svg>
-            <span>Search History</span>
-            {entries.length > 0 && (
-              <span className="hd-count">{entries.length}</span>
-            )}
-          </div>
-          <div className="hd-header-actions">
-            {entries.length > 0 && (
-              <button className="hd-clear-btn" onClick={onClear}>Clear all</button>
-            )}
-            <button className="hd-close-btn" onClick={onClose} aria-label="Close history">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="hd-body">
-          {entries.length === 0 ? (
-            <div className="hd-empty">
-              <span className="hd-empty-icon">🗺️</span>
-              <p className="hd-empty-title">No history yet</p>
-              <p className="hd-empty-sub">Generate an itinerary to see it here.</p>
-            </div>
-          ) : (
-            <ul className="hd-list">
-              {entries.map(entry => (
-                <li key={entry.id} className="hd-entry">
-                  <button
-                    className="hd-entry-main"
-                    onClick={() => handleRestore(entry)}
-                  >
-                    <span className="hd-entry-dest">{entry.destination}</span>
-                    <span className="hd-entry-meta">
-                      {entry.startDate && entry.endDate && (
-                        <span className="hd-meta-chip">
-                          📅 {formatDateRange(entry.startDate, entry.endDate)}
-                        </span>
-                      )}
-                      <span className="hd-meta-chip">
-                        💰 {entry.budget} {entry.currency}
-                      </span>
-                    </span>
-                    <span className="hd-entry-time">{timeAgo(entry.createdAt)}</span>
-                  </button>
-                  <button
-                    className="hd-entry-delete"
-                    onClick={() => onRemove(entry.id)}
-                    aria-label={`Delete ${entry.destination}`}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                    </svg>
-                  </button>
-                </li>
-              ))}
-            </ul>
+    <Drawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      PaperProps={{
+        sx: {
+          width: { xs: '100vw', sm: 380 },
+          display: 'flex',
+          flexDirection: 'column',
+        },
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          px: 2.5,
+          py: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          flexShrink: 0,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <HistoryIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+          <Typography fontWeight={600} fontSize="0.95rem">Search History</Typography>
+          {entries.length > 0 && (
+            <Chip
+              label={entries.length}
+              size="small"
+              sx={{ height: 20, fontSize: '0.72rem', fontWeight: 700, background: 'rgba(67,97,238,0.1)', color: 'primary.main' }}
+            />
           )}
-        </div>
-      </aside>
-    </>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          {entries.length > 0 && (
+            <Button
+              size="small"
+              onClick={onClear}
+              sx={{ color: 'text.secondary', fontSize: '0.78rem', fontWeight: 500, minWidth: 0 }}
+            >
+              Clear all
+            </Button>
+          )}
+          <IconButton size="small" onClick={onClose} aria-label="Close history">
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Box>
+
+      {/* Body */}
+      <Box sx={{ flex: 1, overflowY: 'auto' }}>
+        {entries.length === 0 ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              minHeight: 300,
+              gap: 1,
+              color: 'text.secondary',
+            }}
+          >
+            <Typography fontSize="2rem">🗺️</Typography>
+            <Typography fontWeight={600} fontSize="0.95rem" color="text.primary">No history yet</Typography>
+            <Typography fontSize="0.85rem">Generate an itinerary to see it here.</Typography>
+          </Box>
+        ) : (
+          <List disablePadding>
+            {entries.map((entry, idx) => (
+              <React.Fragment key={entry.id}>
+                <ListItem
+                  disablePadding
+                  secondaryAction={
+                    <IconButton
+                      size="small"
+                      edge="end"
+                      onClick={() => onRemove(entry.id)}
+                      aria-label={`Delete ${entry.destination}`}
+                      sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}
+                    >
+                      <DeleteOutlineIcon fontSize="small" />
+                    </IconButton>
+                  }
+                >
+                  <Box
+                    component="button"
+                    onClick={() => handleRestore(entry)}
+                    sx={{
+                      flex: 1,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      px: 2.5,
+                      py: 1.5,
+                      pr: 6,
+                      '&:hover': { background: 'rgba(0,0,0,0.03)' },
+                    }}
+                  >
+                    <Typography fontWeight={600} fontSize="0.9rem" color="text.primary" noWrap>
+                      {entry.destination}
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                      {entry.startDate && entry.endDate && (
+                        <Chip
+                          label={`📅 ${formatDateRange(entry.startDate, entry.endDate)}`}
+                          size="small"
+                          sx={{ fontSize: '0.72rem', height: 22, background: 'rgba(0,0,0,0.05)' }}
+                        />
+                      )}
+                      <Chip
+                        label={`💰 ${entry.budget} ${entry.currency}`}
+                        size="small"
+                        sx={{ fontSize: '0.72rem', height: 22, background: 'rgba(0,0,0,0.05)' }}
+                      />
+                    </Box>
+                    <Typography color="text.disabled" fontSize="0.75rem" sx={{ mt: 0.5 }}>
+                      {timeAgo(entry.createdAt)}
+                    </Typography>
+                  </Box>
+                </ListItem>
+                {idx < entries.length - 1 && <Divider />}
+              </React.Fragment>
+            ))}
+          </List>
+        )}
+      </Box>
+    </Drawer>
   )
 }
 

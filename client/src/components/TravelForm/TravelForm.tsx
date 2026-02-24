@@ -1,6 +1,19 @@
 import React from 'react'
+import Box from '@mui/material/Box'
+import Paper from '@mui/material/Paper'
+import InputBase from '@mui/material/InputBase'
+import IconButton from '@mui/material/IconButton'
+import Typography from '@mui/material/Typography'
+import Chip from '@mui/material/Chip'
+import CircularProgress from '@mui/material/CircularProgress'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import Divider from '@mui/material/Divider'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined'
+import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import { TravelFormData } from '../../types'
-import './TravelForm.css'
 
 interface TravelFormProps {
   formData: TravelFormData
@@ -10,12 +23,14 @@ interface TravelFormProps {
 }
 
 const CHIPS = [
-  { label: '🇯🇵 Japan',   value: 'Japan' },
-  { label: '🇫🇷 Paris',   value: 'Paris' },
-  { label: '🇮🇸 Iceland', value: 'Iceland' },
-  { label: '🇮🇹 Rome',    value: 'Rome' },
+  { label: '🇯🇵 Japan',    value: 'Japan' },
+  { label: '🇫🇷 Paris',    value: 'Paris' },
+  { label: '🇮🇸 Iceland',  value: 'Iceland' },
+  { label: '🇮🇹 Rome',     value: 'Rome' },
   { label: '🇹🇭 Thailand', value: 'Thailand' },
 ]
+
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'CNY', 'JPY', 'KRW', 'SGD', 'AUD', 'CAD']
 
 const TravelForm: React.FC<TravelFormProps> = ({ formData, loading, onInputChange, onSubmit }) => {
   const today = new Date().toISOString().split('T')[0]
@@ -25,161 +40,196 @@ const TravelForm: React.FC<TravelFormProps> = ({ formData, loading, onInputChang
   }
 
   return (
-    <form onSubmit={onSubmit} className="travel-form">
+    <Box component="form" onSubmit={onSubmit}>
 
-      {/* ── Command Bar ── */}
-      <div className="command-bar">
-
+      {/* Command Bar */}
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          borderRadius: 4,
+          border: '1px solid rgba(0,0,0,0.08)',
+          overflow: 'hidden',
+          background: 'rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.06)',
+          flexWrap: { xs: 'wrap', md: 'nowrap' },
+        }}
+      >
         {/* Destination */}
-        <div className="command-slot command-slot--destination">
-          <svg className="command-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
-          </svg>
-          <div className="command-field">
-            <span className="command-label">Where to?</span>
-            <input
-              type="text"
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2.5, py: 1.5, flex: '1 1 180px', minWidth: 0 }}>
+          <PlaceOutlinedIcon sx={{ color: 'text.disabled', fontSize: 18, flexShrink: 0 }} />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', fontWeight: 500, lineHeight: 1.2 }}>
+              Where to?
+            </Typography>
+            <InputBase
               name="destination"
-              className="command-input"
               placeholder="Tokyo, Paris, Bali…"
               value={formData.destination}
               onChange={onInputChange}
               required
               autoComplete="off"
+              inputProps={{ style: { padding: 0, fontSize: '0.88rem', fontWeight: 500 } }}
+              sx={{ width: '100%' }}
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
 
-        <div className="command-divider" />
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' } }} />
 
-        {/* Dates */}
-        <div className="command-slot command-slot--dates">
-          <svg className="command-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-          <div className="command-field">
-            <span className="command-label">From</span>
-            <input
-              type="date"
-              name="startDate"
-              className="command-input"
-              min={today}
-              value={formData.startDate}
-              onChange={onInputChange}
-              required
-            />
-          </div>
-          <svg className="command-arrow-icon" width="13" height="13" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
-          </svg>
-          <div className="command-field">
-            <span className="command-label">To</span>
-            <input
-              type="date"
-              name="endDate"
-              className="command-input"
-              min={formData.startDate || today}
-              value={formData.endDate}
-              onChange={onInputChange}
-              required
-            />
-          </div>
-        </div>
+        {/* Date range */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2.5, py: 1.5, flex: '1 1 240px', minWidth: 0 }}>
+          <CalendarTodayOutlinedIcon sx={{ color: 'text.disabled', fontSize: 18, flexShrink: 0 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, flex: 1 }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="caption" color="text.disabled" sx={{ display: 'block', fontWeight: 500, lineHeight: 1.2 }}>
+                From
+              </Typography>
+              <InputBase
+                name="startDate"
+                type="date"
+                value={formData.startDate}
+                onChange={onInputChange}
+                required
+                inputProps={{ min: today, style: { padding: 0, fontSize: '0.88rem', fontWeight: 500 } }}
+              />
+            </Box>
+            <ArrowForwardIcon sx={{ fontSize: 14, color: 'text.disabled', flexShrink: 0 }} />
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="caption" color="text.disabled" sx={{ display: 'block', fontWeight: 500, lineHeight: 1.2 }}>
+                To
+              </Typography>
+              <InputBase
+                name="endDate"
+                type="date"
+                value={formData.endDate}
+                onChange={onInputChange}
+                required
+                inputProps={{ min: formData.startDate || today, style: { padding: 0, fontSize: '0.88rem', fontWeight: 500 } }}
+              />
+            </Box>
+          </Box>
+        </Box>
 
-        <div className="command-divider" />
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' } }} />
 
         {/* Budget */}
-        <div className="command-slot command-slot--budget">
-          <svg className="command-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23"/>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-          <div className="command-field">
-            <span className="command-label">Budget</span>
-            <div className="command-budget">
-              <input
-                type="number"
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2.5, py: 1.5, flex: '0 1 160px', minWidth: 0 }}>
+          <AttachMoneyIcon sx={{ color: 'text.disabled', fontSize: 18, flexShrink: 0 }} />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', fontWeight: 500, lineHeight: 1.2 }}>
+              Budget
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <InputBase
                 name="budget"
-                className="command-input command-input--num"
+                type="number"
                 placeholder="5000"
-                min="0"
-                step="100"
                 value={formData.budget}
                 onChange={onInputChange}
                 required
+                inputProps={{ min: 0, step: 100, style: { padding: 0, fontSize: '0.88rem', fontWeight: 500, width: 60 } }}
               />
-              <select
+              <Select
                 name="currency"
-                className="command-input command-select"
                 value={formData.currency}
-                onChange={onInputChange}
+                onChange={(e) => onInputChange(e as unknown as React.ChangeEvent<HTMLSelectElement>)}
+                variant="standard"
+                disableUnderline
+                sx={{ fontSize: '0.82rem', fontWeight: 600, color: 'text.secondary', '.MuiSelect-select': { p: 0 } }}
               >
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="CNY">CNY</option>
-                <option value="JPY">JPY</option>
-                <option value="KRW">KRW</option>
-                <option value="SGD">SGD</option>
-                <option value="AUD">AUD</option>
-                <option value="CAD">CAD</option>
-              </select>
-            </div>
-          </div>
-        </div>
+                {CURRENCIES.map(c => (
+                  <MenuItem key={c} value={c} sx={{ fontSize: '0.85rem' }}>{c}</MenuItem>
+                ))}
+              </Select>
+            </Box>
+          </Box>
+        </Box>
 
         {/* Submit */}
-        <button type="submit" className="command-submit" disabled={loading} aria-label="Generate itinerary">
-          {loading
-            ? <span className="command-spinner" />
-            : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/>
-                <polyline points="12 5 19 12 12 19"/>
-              </svg>
-            )
-          }
-        </button>
-      </div>
-
-      {/* ── Destination Chips ── */}
-      <div className="chips-row">
-        <span className="chips-label">Popular:</span>
-        {CHIPS.map(chip => (
-          <button
-            key={chip.value}
-            type="button"
-            className={`chip ${formData.destination === chip.value ? 'chip--active' : ''}`}
-            onClick={() => handleChipClick(chip.value)}
+        <Box sx={{ px: 1.5, py: 1.5, flexShrink: 0 }}>
+          <IconButton
+            type="submit"
+            disabled={loading}
+            aria-label="Generate itinerary"
+            sx={{
+              width: 44,
+              height: 44,
+              background: loading ? 'rgba(0,0,0,0.08)' : '#1a1a2e',
+              color: 'white',
+              borderRadius: 3,
+              '&:hover': { background: '#000', transform: 'scale(1.05)' },
+              '&.Mui-disabled': { background: 'rgba(0,0,0,0.08)', color: 'rgba(0,0,0,0.3)' },
+              transition: 'all 0.2s',
+            }}
           >
-            {chip.label}
-          </button>
+            {loading
+              ? <CircularProgress size={18} color="inherit" />
+              : <ArrowForwardIcon sx={{ fontSize: 20 }} />
+            }
+          </IconButton>
+        </Box>
+      </Paper>
+
+      {/* Destination Chips */}
+      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+        <Typography variant="caption" color="text.secondary" fontWeight={500} sx={{ mr: 0.5 }}>
+          Popular:
+        </Typography>
+        {CHIPS.map(chip => (
+          <Chip
+            key={chip.value}
+            label={chip.label}
+            onClick={() => handleChipClick(chip.value)}
+            variant={formData.destination === chip.value ? 'filled' : 'outlined'}
+            color={formData.destination === chip.value ? 'primary' : 'default'}
+            size="small"
+            clickable
+            sx={{
+              fontSize: '0.82rem',
+              fontWeight: 500,
+              borderRadius: 100,
+              ...(formData.destination !== chip.value && {
+                borderColor: 'rgba(0,0,0,0.12)',
+                color: 'text.secondary',
+                '&:hover': { borderColor: 'primary.main', color: 'primary.main', background: 'rgba(67,97,238,0.05)' },
+              }),
+            }}
+          />
         ))}
-      </div>
+      </Box>
 
-      {/* ── Preferences ── */}
-      <div className="preferences-wrap">
-        <textarea
-          name="preferences"
-          className="preferences-input"
-          rows={2}
-          placeholder="✦  Travel style, interests, must-sees… (optional)"
-          value={formData.preferences}
-          onChange={onInputChange}
-        />
-      </div>
+      {/* Preferences */}
+      <Box
+        component="textarea"
+        name="preferences"
+        rows={2}
+        placeholder="✦  Travel style, interests, must-sees… (optional)"
+        value={formData.preferences}
+        onChange={onInputChange}
+        sx={{
+          display: 'block',
+          width: '100%',
+          mt: 2,
+          p: 2,
+          border: '1px solid rgba(0,0,0,0.08)',
+          borderRadius: 3,
+          background: 'rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(20px)',
+          fontFamily: 'inherit',
+          fontSize: '0.88rem',
+          color: 'text.primary',
+          resize: 'none',
+          outline: 'none',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          '&:focus': { borderColor: 'primary.main', boxShadow: '0 0 0 3px rgba(67,97,238,0.1)' },
+          lineHeight: 1.6,
+        }}
+      />
 
-    </form>
+    </Box>
   )
 }
 

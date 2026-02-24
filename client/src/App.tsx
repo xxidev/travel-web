@@ -1,6 +1,11 @@
 import React, { useState } from 'react'
+import Box from '@mui/material/Box'
+import Fab from '@mui/material/Fab'
+import Badge from '@mui/material/Badge'
+import HistoryIcon from '@mui/icons-material/History'
 import { TravelFormData } from './types'
 import { generateItinerary } from './api/itinerary'
+import { AuthProvider } from './context/AuthContext'
 import Navbar, { Page } from './components/Navbar/Navbar'
 import Home from './components/Home/Home'
 import Header from './components/Header/Header'
@@ -8,10 +13,12 @@ import Footer from './components/Footer/Footer'
 import TravelForm from './components/TravelForm/TravelForm'
 import ItineraryResult from './components/ItineraryResult/ItineraryResult'
 import HistoryDrawer from './components/HistoryDrawer/HistoryDrawer'
+import AuthModal from './components/AuthModal/AuthModal'
 import { useHistory, HistoryEntry } from './hooks/useHistory'
 
-const App: React.FC = () => {
+const AppInner: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('home')
+  const [authModalOpen, setAuthModalOpen] = useState(false)
 
   const [formData, setFormData] = useState<TravelFormData>({
     destination: '',
@@ -43,7 +50,7 @@ const App: React.FC = () => {
       const result = await generateItinerary(formData)
       setItinerary(result)
       setShowResult(true)
-      addEntry(formData, result)
+      await addEntry(formData, result)
 
       setTimeout(() => {
         document.getElementById('result')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -90,54 +97,75 @@ const App: React.FC = () => {
 
   return (
     <>
+      {/* Ambient orbs */}
       <div className="ambient-bg">
         <div className="ambient-orb ambient-orb--1" />
         <div className="ambient-orb ambient-orb--2" />
         <div className="ambient-orb ambient-orb--3" />
       </div>
 
-      <div className="page-wrapper">
-        <Navbar currentPage={currentPage} onNavigate={handleNavigate} />
+      <Box className="page-wrapper">
+        <Navbar currentPage={currentPage} onNavigate={handleNavigate} onOpenAuth={() => setAuthModalOpen(true)} />
 
         {currentPage === 'home' ? (
           <Home onNavigateToPlanner={navigateToPlanner} />
         ) : (
-          <div className="container container--planner" style={{ paddingTop: 80 }}>
+          <Box className="container container--planner" sx={{ pt: 10 }}>
             <Header />
 
-            <main className="main-card">
+            <Box component="main" sx={{ mb: 3 }}>
               <TravelForm
                 formData={formData}
                 loading={loading}
                 onInputChange={handleInputChange}
                 onSubmit={handleSubmit}
               />
-            </main>
+            </Box>
 
             {showResult && (
-              <section className="result-card">
+              <Box component="section" sx={{ mb: 4 }}>
                 <ItineraryResult itinerary={itinerary} />
-              </section>
+              </Box>
             )}
 
             <Footer />
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
 
-      {/* History FAB — shown on planner page once history exists */}
+      {/* History FAB */}
       {currentPage === 'planner' && entries.length > 0 && (
-        <button className="history-fab" onClick={() => setHistoryOpen(true)}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          History
-          <span className="history-fab-count">{entries.length}</span>
-        </button>
+        <Badge
+          badgeContent={entries.length}
+          color="primary"
+          sx={{
+            position: 'fixed',
+            bottom: 32,
+            right: 32,
+            zIndex: 1200,
+          }}
+        >
+          <Fab
+            variant="extended"
+            onClick={() => setHistoryOpen(true)}
+            sx={{
+              background: '#1a1a2e',
+              color: 'white',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              gap: 1,
+              px: 2.5,
+              borderRadius: 100,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+              '&:hover': { background: '#000' },
+            }}
+          >
+            <HistoryIcon sx={{ fontSize: 18 }} />
+            History
+          </Fab>
+        </Badge>
       )}
 
-      {/* History Drawer — always in DOM for smooth slide animation */}
       <HistoryDrawer
         open={historyOpen}
         entries={entries}
@@ -146,8 +174,16 @@ const App: React.FC = () => {
         onRemove={removeEntry}
         onClear={clearAll}
       />
+
+      <AuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </>
   )
 }
+
+const App: React.FC = () => (
+  <AuthProvider>
+    <AppInner />
+  </AuthProvider>
+)
 
 export default App

@@ -1,5 +1,13 @@
 import React from 'react'
-import './CityCard.css'
+import Card from '@mui/material/Card'
+import CardMedia from '@mui/material/CardMedia'
+import CardContent from '@mui/material/CardContent'
+import CardActions from '@mui/material/CardActions'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
+import Box from '@mui/material/Box'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 
 export interface CityData {
   name: string
@@ -17,37 +25,76 @@ interface CityCardProps {
 
 const CityCard: React.FC<CityCardProps> = ({ city, index, onExplore }) => {
   return (
-    <article
-      className="city-card"
-      style={{ animationDelay: `${index * 0.1}s` }}
+    <Card
+      elevation={0}
+      sx={{
+        border: '1px solid rgba(0,0,0,0.06)',
+        borderRadius: 4,
+        overflow: 'hidden',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        animationDelay: `${index * 0.1}s`,
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 8px 20px rgba(0,0,0,0.08), 0 20px 60px rgba(0,0,0,0.12)',
+        },
+      }}
     >
-      <div className="city-card-image-wrap">
-        <img
-          src={city.image}
+      <Box sx={{ position: 'relative' }}>
+        <CardMedia
+          component="img"
+          height={200}
+          image={city.image}
           alt={`${city.name} landmark`}
-          className="city-card-image"
           loading="lazy"
+          sx={{
+            transition: 'transform 0.35s',
+            '.MuiCard-root:hover &': { transform: 'scale(1.05)' },
+          }}
         />
-        <span className="city-card-tag">{city.tag}</span>
-      </div>
-
-      <div className="city-card-body">
-        <div className="city-card-header">
-          <h3 className="city-card-name">{city.name}</h3>
-          <span className="city-card-country">{city.country}</span>
-        </div>
-        <p className="city-card-desc">{city.description}</p>
-        <button
-          className="city-card-btn"
+        <Chip
+          label={city.tag}
+          size="small"
+          sx={{
+            position: 'absolute',
+            top: 10,
+            left: 10,
+            background: 'rgba(0,0,0,0.55)',
+            backdropFilter: 'blur(8px)',
+            color: 'white',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            borderRadius: 100,
+          }}
+        />
+      </Box>
+      <CardContent sx={{ pb: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: 0.5 }}>
+          <Typography variant="subtitle1" fontWeight={700}>{city.name}</Typography>
+          <Typography variant="caption" color="text.secondary">{city.country}</Typography>
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+          {city.description}
+        </Typography>
+      </CardContent>
+      <CardActions sx={{ px: 2, pb: 2 }}>
+        <Button
+          variant="text"
+          endIcon={<ArrowForwardIcon fontSize="small" />}
           onClick={() => onExplore(city.name)}
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            color: 'text.primary',
+            borderRadius: 100,
+            px: 1.5,
+            '&:hover': { background: 'rgba(0,0,0,0.04)' },
+            '&:hover .MuiButton-endIcon': { transform: 'translateX(3px)', transition: 'transform 0.2s' },
+          }}
         >
           Plan a Trip
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    </article>
+        </Button>
+      </CardActions>
+    </Card>
   )
 }
 

@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
-import { createItineraryService } from '../services/itinerary.service';
-import { createGooglePlacesService } from '../services/googlePlaces.service';
+import config from '../config';
+import { createItineraryService } from './itinerary.service';
+import { createGooglePlacesService } from './places.service';
+
+const googlePlacesService = createGooglePlacesService(config.googlePlaces.apiKey);
+const itineraryService = createItineraryService(googlePlacesService);
 
 export async function generateItinerary(req: Request, res: Response): Promise<void> {
     try {
@@ -11,7 +15,6 @@ export async function generateItinerary(req: Request, res: Response): Promise<vo
             return;
         }
 
-        // Calculate number of days
         const start = new Date(startDate);
         const end = new Date(endDate);
         const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
@@ -20,11 +23,6 @@ export async function generateItinerary(req: Request, res: Response): Promise<vo
             res.status(400).json({ error: 'End date must be after start date' });
             return;
         }
-
-        // Generate itinerary
-        const apiKey = process.env.GOOGLE_PLACES_API_KEY || '';
-        const googlePlacesService = createGooglePlacesService(apiKey);
-        const itineraryService = createItineraryService(googlePlacesService);
 
         const itinerary = await itineraryService.generateItinerary({
             destination,

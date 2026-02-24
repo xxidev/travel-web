@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { generateItinerary } from '../controllers/itinerary.controller';
+import { generateItinerary } from './itinerary.controller';
 
 const router = Router();
 
