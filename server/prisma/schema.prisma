@@ -1,0 +1,35 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int                @id @default(autoincrement())
+  email     String             @unique @db.VarChar(255)
+  password  String             @db.VarChar(255)
+  name      String             @db.VarChar(100)
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  history   ItineraryHistory[]
+
+  @@map("users")
+}
+
+model ItineraryHistory {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  destination String   @db.VarChar(255)
+  startDate   String   @map("start_date") @db.VarChar(20)
+  endDate     String   @map("end_date") @db.VarChar(20)
+  budget      String   @db.VarChar(50)
+  currency    String   @default("USD") @db.VarChar(10)
+  preferences String   @default("") @db.Text
+  itinerary   String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("itinerary_history")
+}
