@@ -77,8 +77,34 @@ async function searchPlaces(apiKey: string, query: string, location: string, typ
     }
 }
 
+// Extract cuisine type from user preferences string
+function extractCuisineFromPreferences(preferences?: string): string | null {
+    if (!preferences) return null;
+    const lower = preferences.toLowerCase();
+    const cuisineMap: [string[], string][] = [
+        [['chinese', 'china food', 'chinese food', '中餐', '中国菜'], 'Chinese'],
+        [['japanese', 'japan food', 'sushi', 'ramen', '日本料理'], 'Japanese'],
+        [['italian', 'pizza', 'pasta', 'italian food'], 'Italian'],
+        [['french', 'french cuisine', 'french food'], 'French'],
+        [['indian', 'curry', 'indian food'], 'Indian'],
+        [['thai', 'thai food'], 'Thai'],
+        [['mexican', 'tacos', 'mexican food'], 'Mexican'],
+        [['korean', 'korean food', 'korean bbq'], 'Korean'],
+        [['mediterranean', 'greek', 'middle eastern'], 'Mediterranean'],
+        [['vegetarian', 'vegan', 'plant-based'], 'vegetarian'],
+        [['seafood', 'fish', 'sushi'], 'seafood'],
+    ];
+
+    for (const [keywords, cuisine] of cuisineMap) {
+        if (keywords.some(kw => lower.includes(kw))) {
+            return cuisine;
+        }
+    }
+    return null;
+}
+
 // Get real hotel, attraction, and restaurant data
-async function getRealPlacesData(apiKey: string, destination: string, budgetLevel: string, budgetPerNight?: number): Promise<PlacesData> {
+async function getRealPlacesData(apiKey: string, destination: string, budgetLevel: string, budgetPerNight?: number, preferences?: string): Promise<PlacesData> {
     const placesData: PlacesData = {
         hotels: [],
         attractions: [],
@@ -120,9 +146,14 @@ async function getRealPlacesData(apiKey: string, destination: string, budgetLeve
         const attractions = await searchPlaces(apiKey, `top attractions ${destination}`, '', 'tourist_attraction');
         console.log(`Found ${attractions.length} attractions`);
 
-        // Search for restaurants
-        const restaurantQuery = budgetLevel === 'budget' ? 'cheap restaurant' :
-                               budgetLevel === 'mid' ? 'restaurant' : 'fine dining';
+        // Search for restaurants — respect cuisine preference if specified
+        const detectedCuisine = extractCuisineFromPreferences(preferences);
+        const baseBudgetQuery = budgetLevel === 'budget' ? 'cheap restaurant' :
+                                budgetLevel === 'mid' ? 'restaurant' : 'fine dining restaurant';
+        const restaurantQuery = detectedCuisine
+            ? `${detectedCuisine} restaurant`
+            : baseBudgetQuery;
+        console.log(`Restaurant search query: "${restaurantQuery} ${destination}"${detectedCuisine ? ` (cuisine preference: ${detectedCuisine})` : ''}`);
         const restaurants = await searchPlaces(apiKey, `${restaurantQuery} ${destination}`, '', 'restaurant');
         console.log(`Found ${restaurants.length} restaurants`);
 
@@ -188,8 +219,8 @@ export function createGooglePlacesService(apiKey: string) {
     return {
         searchPlaces: (query: string, location: string, type?: string) =>
             searchPlaces(apiKey, query, location, type),
-        getRealPlacesData: (destination: string, budgetLevel: string, budgetPerNight?: number) =>
-            getRealPlacesData(apiKey, destination, budgetLevel, budgetPerNight),
+        getRealPlacesData: (destination: string, budgetLevel: string, budgetPerNight?: number, preferences?: string) =>
+            getRealPlacesData(apiKey, destination, budgetLevel, budgetPerNight, preferences),
     };
 }
 

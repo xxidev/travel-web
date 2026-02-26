@@ -300,7 +300,8 @@ function generateDayOneOptimized(
     destination: string,
     hotels: PlaceWithLocation[],
     attractions: PlaceWithLocation[],
-    nearbyRestaurants: PlaceWithLocation[]
+    nearbyRestaurants: PlaceWithLocation[],
+    cuisineNote: string
 ): string {
     let section = '';
 
@@ -319,7 +320,7 @@ function generateDayOneOptimized(
         section += `- Address: ${nearbyRestaurants[0].address}\n`;
         section += `- Rating: ${nearbyRestaurants[0].rating}\n`;
     } else {
-        section += `- Find a local restaurant near your hotel\n`;
+        section += `- Find a ${cuisineNote}restaurant near your hotel\n`;
         section += `- Try local specialties\n`;
     }
     section += `\n`;
@@ -340,7 +341,7 @@ function generateDayOneOptimized(
         section += `- Recommended: ${nearbyRestaurants[1].name}\n`;
         section += `- Address: ${nearbyRestaurants[1].address}\n`;
     } else {
-        section += `- Enjoy local cuisine\n`;
+        section += `- Find a ${cuisineNote}restaurant for dinner\n`;
     }
     section += `- Explore the nightlife of ${destination}\n\n`;
 
@@ -368,7 +369,8 @@ function generateLastDay(destination: string): string {
 function generateMiddleDayOptimized(
     day: number,
     destination: string,
-    dayPlan: DayPlan
+    dayPlan: DayPlan,
+    cuisineNote: string
 ): string {
     let section = '';
     const { attractions, restaurants } = dayPlan;
@@ -394,7 +396,7 @@ function generateMiddleDayOptimized(
         section += `- Address: ${restaurants[0].address}\n`;
         section += `- Rating: ${restaurants[0].rating}\n`;
     } else {
-        section += `- Find local food near the attractions\n`;
+        section += `- Find a ${cuisineNote}restaurant near the attractions\n`;
     }
     section += `\n`;
 
@@ -416,7 +418,7 @@ function generateMiddleDayOptimized(
         section += `- Recommended: ${restaurants[1].name} (nearby)\n`;
         section += `- Address: ${restaurants[1].address}\n`;
     } else {
-        section += `- Enjoy local cuisine\n`;
+        section += `- Find a ${cuisineNote}restaurant for dinner\n`;
     }
     section += `- Explore night markets or enjoy the night view\n\n`;
 
@@ -479,12 +481,37 @@ function generateMiddleDay(
 function generateDetailedItinerary(
     realData: PlacesData,
     days: number,
-    destination: string
+    destination: string,
+    preferences?: string
 ): string {
     let section = `## Detailed Itinerary\n\n`;
     section += `> Route optimized by geographic proximity - attractions and restaurants are clustered by area to minimize travel time.\n\n`;
 
     const { attractions, restaurants, hotels } = realData;
+
+    // Build cuisine note for fallback text (e.g. "Chinese " or "")
+    const cuisineNote = preferences
+        ? (() => {
+              const lower = preferences.toLowerCase();
+              const cuisineMap: [string[], string][] = [
+                  [['chinese', 'china food', 'chinese food', '中餐', '中国菜'], 'Chinese '],
+                  [['japanese', 'japan food', 'sushi', 'ramen', '日本料理'], 'Japanese '],
+                  [['italian', 'pizza', 'pasta', 'italian food'], 'Italian '],
+                  [['french', 'french cuisine', 'french food'], 'French '],
+                  [['indian', 'curry', 'indian food'], 'Indian '],
+                  [['thai', 'thai food'], 'Thai '],
+                  [['mexican', 'tacos', 'mexican food'], 'Mexican '],
+                  [['korean', 'korean food', 'korean bbq'], 'Korean '],
+                  [['mediterranean', 'greek', 'middle eastern'], 'Mediterranean '],
+                  [['vegetarian', 'vegan', 'plant-based'], 'vegetarian '],
+                  [['seafood', 'fish'], 'seafood '],
+              ];
+              for (const [keywords, label] of cuisineMap) {
+                  if (keywords.some(kw => lower.includes(kw))) return label;
+              }
+              return '';
+          })()
+        : '';
 
     // Cluster attractions by day based on geographic proximity
     const dayPlans = clusterAttractionsByDay(attractions, days);
@@ -492,21 +519,22 @@ function generateDetailedItinerary(
     // Assign nearby restaurants to each day
     assignRestaurantsToDays(dayPlans, restaurants);
 
+    // Collect all restaurant names already assigned to other days
+    const assignedNames = new Set(dayPlans.flatMap(dp => dp.restaurants.map(r => r.name)));
+    // Day 1 (arrival) gets restaurants not used by any other day
+    const day1Restaurants = restaurants.filter(r => !assignedNames.has(r.name)).slice(0, 2);
+
     for (let day = 1; day <= days; day++) {
         section += `### Day ${day}\n\n`;
 
         if (day === 1) {
-            const dayPlan = dayPlans[0] || { attractions: [], restaurants: [] };
-            // First day: use first cluster's restaurant if available, or first restaurant
-            const firstDayRestaurants = dayPlan.restaurants.length > 0 ? dayPlan.restaurants :
-                (dayPlans[1]?.restaurants.length > 0 ? dayPlans[1].restaurants : restaurants);
-            section += generateDayOneOptimized(destination, hotels, attractions, firstDayRestaurants);
+            section += generateDayOneOptimized(destination, hotels, attractions, day1Restaurants, cuisineNote);
         } else if (day === days) {
             section += generateLastDay(destination);
         } else {
             const dayPlan = dayPlans[day - 1];
             if (dayPlan && dayPlan.attractions.length > 0) {
-                section += generateMiddleDayOptimized(day, destination, dayPlan);
+                section += generateMiddleDayOptimized(day, destination, dayPlan, cuisineNote);
             } else {
                 section += generateMiddleDay(day, destination, attractions, restaurants, attractions.length > 0);
             }
@@ -549,7 +577,7 @@ export function createItineraryService(googlePlacesService: GooglePlacesService)
         let realData: PlacesData = { hotels: [], attractions: [], restaurants: [] };
         try {
             console.log(`Fetching data for ${destination} (budget level: ${budgetLevel}, per night: ¥${budgetPerNightCNY})...`);
-            realData = await googlePlacesService.getRealPlacesData(destination, budgetLevel, budgetPerNightCNY);
+            realData = await googlePlacesService.getRealPlacesData(destination, budgetLevel, budgetPerNightCNY, preferences);
             console.log(`Found: ${realData.hotels.length} hotels, ${realData.attractions.length} attractions, ${realData.restaurants.length} restaurants`);
         } catch (error) {
             console.error('Google API call failed:', (error as Error).message);
@@ -561,7 +589,7 @@ export function createItineraryService(googlePlacesService: GooglePlacesService)
 
         itinerary += generateBudgetSection(budget, Math.floor(budget / days), budgetInCNY, currency, currencySymbol);
         itinerary += generateAccommodationSection(realData, days, budgetInCNY, currency, currencySymbol, destination);
-        itinerary += generateDetailedItinerary(realData, days, destination);
+        itinerary += generateDetailedItinerary(realData, days, destination, preferences);
         itinerary += generateTipsSection(destination, preferences);
 
         return itinerary;

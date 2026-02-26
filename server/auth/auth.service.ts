@@ -1,4 +1,4 @@
-import pool from '../db';
+import prisma from '../prisma';
 import bcrypt from 'bcryptjs';
 
 export interface User {
@@ -10,19 +10,29 @@ export interface User {
 
 export async function createUser(email: string, password: string, name: string): Promise<User> {
     const passwordHash = await bcrypt.hash(password, 12);
-    const result = await pool.query<User>(
-        'INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id, email, name, created_at',
-        [email.toLowerCase(), passwordHash, name]
-    );
-    return result.rows[0];
+    const user = await prisma.user.create({
+        data: {
+            email: email.toLowerCase(),
+            password: passwordHash,
+            name,
+        },
+        select: { id: true, email: true, name: true, createdAt: true },
+    });
+    return { id: user.id, email: user.email, name: user.name, created_at: user.createdAt };
 }
 
 export async function findUserByEmail(email: string): Promise<(User & { password: string }) | null> {
-    const result = await pool.query(
-        'SELECT id, email, name, password, created_at FROM users WHERE email = $1',
-        [email.toLowerCase()]
-    );
-    return result.rows[0] || null;
+    const user = await prisma.user.findUnique({
+        where: { email: email.toLowerCase() },
+    });
+    if (!user) return null;
+    return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        password: user.password,
+        created_at: user.createdAt,
+    };
 }
 
 export async function verifyPassword(plain: string, hash: string): Promise<boolean> {

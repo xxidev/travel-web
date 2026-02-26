@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import config from '../config';
-import pool from '../db';
+import prisma from '../prisma';
 import { createUser, findUserByEmail, verifyPassword } from './auth.service';
 import { AuthRequest } from './auth.middleware';
 
@@ -75,11 +75,10 @@ export async function login(req: Request, res: Response): Promise<void> {
 
 export async function getMe(req: AuthRequest, res: Response): Promise<void> {
     try {
-        const result = await pool.query(
-            'SELECT id, email, name FROM users WHERE id = $1',
-            [req.userId]
-        );
-        const user = result.rows[0];
+        const user = await prisma.user.findUnique({
+            where: { id: req.userId },
+            select: { id: true, email: true, name: true },
+        });
         if (!user) {
             res.status(404).json({ error: 'User not found' });
             return;

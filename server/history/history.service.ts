@@ -1,4 +1,4 @@
-import pool from '../db';
+import prisma from '../prisma';
 
 export interface HistoryEntry {
     id: number;
@@ -13,16 +13,39 @@ export interface HistoryEntry {
     created_at: Date;
 }
 
+function toHistoryEntry(h: {
+    id: number;
+    userId: number;
+    destination: string;
+    startDate: string;
+    endDate: string;
+    budget: string;
+    currency: string;
+    preferences: string;
+    itinerary: string;
+    createdAt: Date;
+}): HistoryEntry {
+    return {
+        id: h.id,
+        user_id: h.userId,
+        destination: h.destination,
+        start_date: h.startDate,
+        end_date: h.endDate,
+        budget: h.budget,
+        currency: h.currency,
+        preferences: h.preferences,
+        itinerary: h.itinerary,
+        created_at: h.createdAt,
+    };
+}
+
 export async function getHistory(userId: number): Promise<HistoryEntry[]> {
-    const result = await pool.query<HistoryEntry>(
-        `SELECT id, destination, start_date, end_date, budget, currency, preferences, itinerary, created_at
-         FROM itinerary_history
-         WHERE user_id = $1
-         ORDER BY created_at DESC
-         LIMIT 20`,
-        [userId]
-    );
-    return result.rows;
+    const results = await prisma.itineraryHistory.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+    });
+    return results.map(toHistoryEntry);
 }
 
 export async function addHistory(
@@ -37,23 +60,34 @@ export async function addHistory(
         itinerary: string;
     }
 ): Promise<HistoryEntry> {
-    const result = await pool.query<HistoryEntry>(
-        `INSERT INTO itinerary_history (user_id, destination, start_date, end_date, budget, currency, preferences, itinerary)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-         RETURNING id, destination, start_date, end_date, budget, currency, preferences, itinerary, created_at`,
-        [userId, data.destination, data.startDate, data.endDate, data.budget, data.currency, data.preferences, data.itinerary]
-    );
-    return result.rows[0];
+    const result = await prisma.itineraryHistory.create({
+        data: {
+            userId,
+            destination: data.destination,
+            startDate: data.startDate,
+            endDate: data.endDate,
+            budget: data.budget,
+            currency: data.currency,
+            preferences: data.preferences,
+            itinerary: data.itinerary,
+        },
+    });
+    return toHistoryEntry(result);
 }
 
 export async function deleteHistory(userId: number, historyId: number): Promise<boolean> {
-    const result = await pool.query(
-        'DELETE FROM itinerary_history WHERE id = $1 AND user_id = $2',
-        [historyId, userId]
-    );
-    return (result.rowCount ?? 0) > 0;
+    try {
+        await prisma.itineraryHistory.delete({
+            where: { id: historyId, userId },
+        });
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export async function clearHistory(userId: number): Promise<void> {
-    await pool.query('DELETE FROM itinerary_history WHERE user_id = $1', [userId]);
+    await prisma.itineraryHistory.deleteMany({
+        where: { userId },
+    });
 }

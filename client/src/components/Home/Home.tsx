@@ -12,7 +12,7 @@ interface HomeProps {
   onNavigateToPlanner: (destination?: string) => void
 }
 
-const SECTIONS = ['hero', 'cities', 'routes', 'steps', 'cta'] as const
+const SECTIONS = ['hero', 'cities', 'steps', 'cta'] as const
 
 const cities = [
   { name: 'Paris',    country: 'France',         image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80', tag: 'Most Popular' },
@@ -20,27 +20,6 @@ const cities = [
   { name: 'New York', country: 'United States',   image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80', tag: 'Classic' },
   { name: 'London',   country: 'United Kingdom',  image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80', tag: 'Heritage' },
   { name: 'Sydney',   country: 'Australia',       image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800&q=80', tag: 'Adventure' },
-]
-
-const routes = [
-  {
-    title: '7 Days in Japan',
-    duration: '7 days',
-    stops: ['Tokyo', 'Kyoto', 'Osaka', 'Nara'],
-    gradient: 'linear-gradient(135deg, #f72585, #7209b7)',
-  },
-  {
-    title: 'European Classics',
-    duration: '14 days',
-    stops: ['Paris', 'Rome', 'Barcelona', 'Amsterdam'],
-    gradient: 'linear-gradient(135deg, #4361ee, #4cc9f0)',
-  },
-  {
-    title: 'Southeast Asia Explorer',
-    duration: '10 days',
-    stops: ['Bangkok', 'Hanoi', 'Bali', 'Singapore'],
-    gradient: 'linear-gradient(135deg, #06d6a0, #118ab2)',
-  },
 ]
 
 const steps = [
@@ -266,45 +245,8 @@ const Home: React.FC<HomeProps> = ({ onNavigateToPlanner }) => {
         </div>
       </section>
 
-      {/* ===== 3. Routes ===== */}
-      <section className="fp-section fp-section--routes" data-index="2" id="routes">
-        <div className="fp-section__inner">
-          <Box sx={{ textAlign: 'center', mb: 5 }}>
-            <Typography variant="overline" color="primary" fontWeight={600} letterSpacing="0.1em" display="block" mb={1}>
-              Curated Trips
-            </Typography>
-            <Typography variant="h3" fontWeight={700} letterSpacing="-0.03em" mb={1}>
-              Recommended routes
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 480, mx: 'auto' }}>
-              Ready-made itineraries for the most popular travel routes.
-            </Typography>
-          </Box>
-
-          <div className="routes-row">
-            {routes.map((route) => (
-              <div key={route.title} className="route-card" style={{ background: route.gradient }}>
-                <span className="route-card__duration">{route.duration}</span>
-                <h3 className="route-card__title">{route.title}</h3>
-                <div className="route-card__stops">
-                  {route.stops.map((stop, i) => (
-                    <span key={stop}>{stop}{i < route.stops.length - 1 && ' → '}</span>
-                  ))}
-                </div>
-                <button className="route-card__btn" onClick={() => onNavigateToPlanner(route.stops[0])}>
-                  Plan This Trip
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== 4. Steps ===== */}
-      <section className="fp-section fp-section--steps" data-index="3" id="steps">
+      {/* ===== 3. Steps ===== */}
+      <section className="fp-section fp-section--steps" data-index="2" id="steps">
         <div className="fp-section__inner">
           <Box sx={{ textAlign: 'center', mb: 5 }}>
             <Typography variant="overline" color="primary" fontWeight={600} letterSpacing="0.1em" display="block" mb={1}>
@@ -389,8 +331,8 @@ const Home: React.FC<HomeProps> = ({ onNavigateToPlanner }) => {
         </div>
       </section>
 
-      {/* ===== 5. CTA + Footer ===== */}
-      <section className="fp-section fp-section--cta" data-index="4" id="cta">
+      {/* ===== 4. CTA + Footer ===== */}
+      <section className="fp-section fp-section--cta" data-index="3" id="cta">
         <div className="fp-section__inner">
           <Box sx={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <Typography
